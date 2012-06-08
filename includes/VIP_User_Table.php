@@ -16,20 +16,7 @@ class VIP_User_Table extends WP_List_Table {
       ) );
   }
 
-  function column_username($item){
-  	  $actions = array(
-	      'edit'      => '<a href="#">Edit</a>',
-	      'delete'    => '<a href="#">Delete</a>',
-	  );
- 
-	  return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-	      /*$1%s*/ $item->user_login,
-	      /*$2%s*/ $item->ID,
-	      /*$3%s*/ $this->row_actions($actions)
-	  );
-	}
-
-	function column_cb($item){
+  function column_cb($item){
       return sprintf(
           '<input type="checkbox" name="%1$s[]" value="%2$s" />',
           /*$1%s*/ $this->_args['singular'],
@@ -37,12 +24,25 @@ class VIP_User_Table extends WP_List_Table {
       );
   }
 
+  function column_username($item){
+  	  $actions = array(
+	      'edit'      => '<a href="#">Edit</a>',
+	      'delete'    => '<a href="#">Delete</a>',
+	  );
+ 
+	  return sprintf( __('%1$s <span style="color:silver">(id:%2$s)</span>%3$s'),
+	      /*$1%s*/ $item->user_login,
+	      /*$2%s*/ $item->ID,
+	      /*$3%s*/ $this->row_actions($actions)
+	  );
+	}
+
   function column_name($item){
       return $item->user_nicename;
   }
 
   function column_email($item){
-      return $item->user_email;
+      return sprintf( __('<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>'), $item->user_email );
   }
 
   function column_sites($item){
@@ -80,7 +80,7 @@ class VIP_User_Table extends WP_List_Table {
 
   function get_bulk_actions() {
       $actions = array(
-          'modify'    => 'Modify'
+          'modify'    => __('Modify'),
       );
       return $actions;
   }
