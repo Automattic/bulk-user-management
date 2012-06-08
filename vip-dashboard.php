@@ -15,7 +15,7 @@ Domain Path:  /languages/
 
 **************************************************************************/
 
-include('includes/user-table.php');
+include('includes/VIP_User_Table.php');
 
 class VIP_Dashboard {
 
@@ -64,14 +64,9 @@ class VIP_Dashboard {
 	}
 
 	public function users_page() {
-		// TODO: replace with blog stickers API
-		$user_id = get_current_user_id();
-		$blogs = get_blogs_of_user($user_id, false);
-		$blog_ids = array();
-		foreach ( $blogs as $blog )
-			$blog_ids[] = $blog->userblog_id;
 
-		$users = $this->users_for_blogs($blog_ids);
+		$vip_users_table = new VIP_User_Table();
+		$vip_users_table->prepare_items();
 
 		?>
 
@@ -83,7 +78,7 @@ class VIP_Dashboard {
 			<div class='col-container'>
 
 				<div id='col-right'>
-					<div class='col-wrap'><?php $this->temp_table($users, $blog_ids); ?></div>
+					<div class='col-wrap'><?php $vip_users_table->display(); ?></div>
 				</div>
 
 				<div id='col-left'>
