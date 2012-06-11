@@ -1,34 +1,38 @@
 <?php
 
 if(!class_exists('WP_List_Table')){
-    require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+  require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
 class VIP_User_Table extends WP_List_Table {
 
   function __construct(){
-      global $status, $page;
-              
-      //Set parent defaults
-      parent::__construct( array(
-          'singular'  => 'vip_user',
-          'plural'    => 'vip_users'
-      ) );
+    global $status, $page;
+            
+    //Set parent defaults
+    parent::__construct( array(
+        'singular'  => 'vip_user',
+        'plural'    => 'vip_users'
+    ) );
+  }
+
+  function no_items() {
+    _e( 'No matching users were found', 'vip-dashboard' );
   }
 
   function column_cb($item){
-      return sprintf(
-          '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-          /*$1%s*/ $this->_args['singular'],
-          /*$2%s*/ $item->ID
-      );
+    return sprintf(
+        '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+        /*$1%s*/ $this->_args['singular'],
+        /*$2%s*/ $item->ID
+    );
   }
 
   function column_username($item){
-  	  $actions = array(
-	      'edit'      => '<a href="#">Edit</a>',
-	      'delete'    => '<a href="#">Delete</a>',
-	  );
+    $actions = array();
+    $actions['edit'] = '<a href="#">Edit</a>';
+    if ( get_current_user_id() !== $item->ID )
+      $actions['delete'] = '<a href="#">Delete</a>';
  
     return sprintf( __('%1$s %2$s <span style="color:silver">(id:%3$s)</span>%4$s', 'vip-dashboard' ),
         /*$1%s*/ get_avatar($item->ID, 32),
@@ -39,7 +43,7 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function column_name($item){
-      return $item->user_nicename;
+    return $item->user_firstname . ' ' . $item->user_lastname;
   }
 
   function column_email($item){
@@ -47,15 +51,15 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function column_sites($item){
-  	$blogs = get_blogs_of_user($item->ID);
+    $blogs = get_blogs_of_user($item->ID);
 
-  	// TODO: replace with blog stickers API
-  	$crossreference = $this->blog_ids();
+    // TODO: replace with blog stickers API
+    $crossreference = $this->blog_ids();
 
-  	$sites = '';
-  	foreach ( $blogs as $blog )
-		  if( in_array($blog->site_id, $crossreference) )
-					$sites .= $blog->blogname . "<br>";
+    $sites = '';
+    foreach ( $blogs as $blog )
+      if( in_array($blog->site_id, $crossreference) )
+          $sites .= $blog->blogname . "<br>";
     return $sites;
   }
 
@@ -71,12 +75,12 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function get_sortable_columns() {
-      $sortable_columns = array(
-          'username' => array('username',false),
-          'name'     => array('name',false),
-          'email'    => array('email',false)
-      );
-      return $sortable_columns;
+    $sortable_columns = array(
+        'username' => array('username',false),
+        'name'     => array('name',false),
+        'email'    => array('email',false)
+    );
+    return $sortable_columns;
   }
 
   function get_bulk_actions() {
@@ -87,7 +91,6 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function process_bulk_action() {
-		}
     switch( $this->current_action() ) {
       case 'modify':
         wp_die( __("Modify Bulk Action"), 'vip-dashboard' );
@@ -97,25 +100,25 @@ class VIP_User_Table extends WP_List_Table {
 
   // TODO: replace with blog stickers API
   function blog_ids() {
-		$user_id = get_current_user_id();
-		$blogs = get_blogs_of_user($user_id, false);
-		$blog_ids = array();
-		foreach ( $blogs as $blog )
-			$blog_ids[] = $blog->userblog_id;
+    $user_id = get_current_user_id();
+    $blogs = get_blogs_of_user($user_id, false);
+    $blog_ids = array();
+    foreach ( $blogs as $blog )
+      $blog_ids[] = $blog->userblog_id;
 
-		return $blog_ids;
+    return $blog_ids;
   }
 
   function prepare_items() {
-  	global $wpdb, $usersearch;
+    global $wpdb, $usersearch;
 
-  	$usersearch = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
-  	
-  	$per_page = $this->get_items_per_page( 'users_per_page' );
+    $usersearch = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
+    
+    $per_page = $this->get_items_per_page( 'users_per_page' );
 
-  	$paged = $this->get_pagenum();
+    $paged = $this->get_pagenum();
 
-  	$columns = $this->get_columns();
+    $columns = $this->get_columns();
     $hidden = array();
     $sortable = $this->get_sortable_columns();
     $this->_column_headers = array($columns, $hidden, $sortable);
@@ -123,38 +126,46 @@ class VIP_User_Table extends WP_List_Table {
     $this->process_bulk_action();
 
     // TODO: replace with blog stickers API
-    $blog_ids = $this->blog_ids();		
+    $blog_ids = $this->blog_ids();    
 
-		$meta_query = array();
-		foreach ( $blog_ids as $blog_id )
-			$meta_query[]['meta_key'] = $wpdb->get_blog_prefix( $blog_id ). '_capabilities';
+    $meta_query = array();
+    foreach ( $blog_ids as $blog_id )
+      $meta_query[]['meta_key'] = $wpdb->get_blog_prefix( $blog_id ). '_capabilities';
 
-		$args = array(
-			'blog_id' 	 => null,
-			'meta_query' => $meta_query,
-			'number' 		 => $per_page,
-			'offset'		 => $per_page * ($paged-1),
-			'search' 		 => $usersearch,
-			'fields'		 => 'all_with_meta'
-		);
+    $args = array(
+      'blog_id'    => null,
+      'meta_query' => $meta_query,
+      'number'     => $per_page,
+      'offset'     => $per_page * ($paged-1),
+      'search'     => $usersearch,
+      'fields'     => 'all_with_meta'
+    );
 
-		if ( '' !== $args['search'] )
-			$args['search'] = '*' . $args['search'] . '*';
+    if ( '' !== $args['search'] )
+      $args['search'] = '*' . $args['search'] . '*';
 
-		if ( isset( $_REQUEST['orderby'] ) )
-			$args['orderby'] = $_REQUEST['orderby'];
+    if ( isset( $_REQUEST['orderby'] ) )
+      $args['orderby'] = $_REQUEST['orderby'];
 
-		if ( isset( $_REQUEST['order'] ) )
-			$args['order'] = $_REQUEST['order'];
+    if ( isset( $_REQUEST['order'] ) )
+      $args['order'] = $_REQUEST['order'];
 
-		$query = new WP_User_Query( $args );
+    $query = new WP_User_Query( $args );
 
-		$this->items = $query->get_results();
+    $this->items = $query->get_results();
 
-		$this->set_pagination_args( array(
-			"total_items" => $query->total_users,
-			"per_page" => $per_page,
-		) );
+    $this->set_pagination_args( array(
+      "total_items" => $query->total_users,
+      "per_page" => $per_page,
+    ) );
   }
- 
+
+  /**
+   * Outputs the hidden row displayed when inline editing
+   *
+   * @since 3.1.0
+   */
+  function inline_edit() {
+    
+  }
 }
