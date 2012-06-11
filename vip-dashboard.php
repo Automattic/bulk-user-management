@@ -200,7 +200,7 @@ class VIP_Dashboard {
 				<?php wp_dropdown_roles( get_option('default_role') ); ?>
 			</select>
 			
-			<?php submit_button( __( 'Update '), 'primary', 'changeit', false ); ?>
+			<?php submit_button( __( 'Update', 'vip-dashboard' ), 'primary', 'changeit', false ); ?>
 <?php
 	}
 
@@ -229,7 +229,7 @@ class VIP_Dashboard {
 				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
 			</div>
 			
-			<?php submit_button( __( 'Add User '), 'primary', 'adduser', true ); ?>
+			<?php submit_button( __( 'Add User', 'vip-dashboard' ), 'primary', 'adduser', true ); ?>
 		</form>
 
 <?php
@@ -240,7 +240,7 @@ class VIP_Dashboard {
 		$redirect = "admin.php?page=vip_dashboard_users";
 
 		if ( ! current_user_can( 'promote_users' ) )
-			wp_die( __( 'You can&#8217;t edit that user.' ) );
+			wp_die( __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
 
 		if ( empty($_REQUEST['users']) ) {
 			wp_redirect($redirect);
@@ -249,7 +249,7 @@ class VIP_Dashboard {
 
 		$editable_roles = get_editable_roles();
 		if ( empty( $editable_roles[$_REQUEST['new_role']] ) )
-			wp_die(__('You can&#8217;t give users that role.'));
+			wp_die(__( 'You can&#8217;t give users that role.', 'vip-dashboard' ));
 
 		$userids = $_REQUEST['users'];
 		$update = 'promote';
@@ -257,7 +257,7 @@ class VIP_Dashboard {
 			$id = (int) $id;
 
 			if ( ! current_user_can('promote_user', $id) )
-				wp_die(__('You can&#8217;t edit that user.'));
+				wp_die(__( 'You can&#8217;t edit that user.', 'vip-dashboard' ));
 			// The new role of the current user must also have the promote_users cap or be a multisite super admin
 			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $_REQUEST['new_role'] ]->has_cap('promote_users')
 				&& ! ( is_multisite() && is_super_admin() ) ) {

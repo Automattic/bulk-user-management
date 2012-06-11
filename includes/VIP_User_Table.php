@@ -30,19 +30,20 @@ class VIP_User_Table extends WP_List_Table {
 	      'delete'    => '<a href="#">Delete</a>',
 	  );
  
-	  return sprintf( __('%1$s <span style="color:silver">(id:%2$s)</span>%3$s'),
-	      /*$1%s*/ $item->user_login,
-	      /*$2%s*/ $item->ID,
-	      /*$3%s*/ $this->row_actions($actions)
-	  );
-	}
+    return sprintf( __('%1$s %2$s <span style="color:silver">(id:%3$s)</span>%4$s', 'vip-dashboard' ),
+        /*$1%s*/ get_avatar($item->ID, 32),
+        /*$2%s*/ $item->user_login,
+        /*$3%s*/ $item->ID,
+        /*$4%s*/ $this->row_actions($actions)
+    );
+  }
 
   function column_name($item){
       return $item->user_nicename;
   }
 
   function column_email($item){
-      return sprintf( __('<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>'), $item->user_email );
+    return sprintf( __('<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>', 'vip-dashboard' ), $item->user_email );
   }
 
   function column_sites($item){
@@ -59,14 +60,14 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function get_columns(){
-      $columns = array(
-          'cb'       => '<input type="checkbox" />',
-          'username' => __('Username'),
-          'name'     => __('Name'),
-          'email'  	 => __('E-mail'),
-          'sites' 	 => __('Sites'),
-      );
-      return $columns;
+    $columns = array(
+        'cb'       => '<input type="checkbox" />',
+        'username' => __( 'Username', 'vip-dashboard' ),
+        'name'     => __( 'Name', 'vip-dashboard' ),
+        'email'    => __( 'E-mail', 'vip-dashboard' ),
+        'sites'    => __( 'Sites', 'vip-dashboard' ),
+    );
+    return $columns;
   }
 
   function get_sortable_columns() {
@@ -79,18 +80,19 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function get_bulk_actions() {
-      $actions = array(
-          'modify'    => __('Modify'),
-      );
-      return $actions;
+    $actions = array(
+        'modify'    => __( 'Modify', 'vip-dashboard' ),
+    );
+    return $actions;
   }
 
   function process_bulk_action() {
-		switch( $this->current_action() ) {
-			case 'modify':
-				wp_die("Modify Bulk Action");
-				break;
 		}
+    switch( $this->current_action() ) {
+      case 'modify':
+        wp_die( __("Modify Bulk Action"), 'vip-dashboard' );
+        break;
+    }
   }
 
   // TODO: replace with blog stickers API
