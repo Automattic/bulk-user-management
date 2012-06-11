@@ -78,7 +78,12 @@ class VIP_Dashboard {
 			<div class='col-container'>
 
 				<div id='col-right'>
-					<div class='col-wrap'><?php $vip_users_table->display(); ?></div>
+					<div class='col-wrap'>
+						<form action="" method="get">
+						<?php $vip_users_table->search_box( __( 'Search Users', 'vip-dashboard' ), 'user' ); ?>
+						<?php $vip_users_table->display(); ?>
+						</form>
+					</div>
 				</div>
 
 				<div id='col-left'>
