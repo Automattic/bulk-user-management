@@ -27,12 +27,15 @@ class VIP_Dashboard {
 
 	private $option_name           = 'vip_dashboard';
 	private $users_slug						 = 'vip_dashboard_users';
+	private $parent_page					 = 'index.php';
 
 	function __construct() {
 		add_action( 'init',           array( &$this, 'init' ) );
 		add_action( 'admin_init', 		array( &$this, 'admin_init' ) );
 
 		add_action( 'admin_menu',     array( &$this, 'register_menus' ) );
+
+		$this->parent_page = apply_filters('vip_dashboard_users_parent_page', $this->parent_page);
 	}
 
 	public function init() {
@@ -44,7 +47,7 @@ class VIP_Dashboard {
 	}
 
 	public function admin_init() {
-		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery') );
+		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery'), $this->version );
 
 		if ( isset($_REQUEST['form']) && 'promote' == $_REQUEST['form'] ) {
 			$this->promote_users();
@@ -54,7 +57,7 @@ class VIP_Dashboard {
 	}
 
 	public function register_menus() {
-		add_submenu_page( 'index.php', esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
+		add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
 	}
 
 	public function users_page() {
