@@ -34,8 +34,6 @@ class VIP_Dashboard {
 		add_action( 'admin_init', 		array( &$this, 'admin_init' ) );
 
 		add_action( 'admin_menu',     array( &$this, 'register_menus' ) );
-
-		$this->parent_page = apply_filters('vip_dashboard_users_parent_page', $this->parent_page);
 	}
 
 	public function init() {
@@ -44,6 +42,7 @@ class VIP_Dashboard {
 		);
 
 		$this->settings = wp_parse_args( (array) get_option( $this->option_name ), $this->default_settings );
+		$this->parent_page = apply_filters('vip_dashboard_users_parent_page', $this->parent_page);
 	}
 
 	public function admin_init() {
