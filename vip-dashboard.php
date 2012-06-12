@@ -48,9 +48,9 @@ class VIP_Dashboard {
 	public function admin_init() {
 		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery'), $this->version );
 
-		if ( isset($_REQUEST['form']) && 'promote' == $_REQUEST['form'] ) {
+		if ( isset($_REQUEST['action']) && 'modify' == $_REQUEST['action'] ) {
 			$this->handle_promote_users_form();
-		} elseif ( isset($_REQUEST['form']) && 'createuser' == $_REQUEST['form'] ) {
+		} elseif ( isset($_REQUEST['action']) && 'createuser' == $_REQUEST['action'] ) {
 			$this->handle_create_users_form();
 		}
 	}
@@ -76,8 +76,11 @@ class VIP_Dashboard {
 
 				<div id='col-right'>
 					<div class='col-wrap'>
+						<form>
+							<input type=hidden name=page value="vip_dashboard_users">
+							<?php $vip_users_table->search_box( __( 'Search Users', 'vip-dashboard' ), 'user' ); ?>
+						</form>
 						<form action="" method="get">
-						<?php $vip_users_table->search_box( __( 'Search Users', 'vip-dashboard' ), 'user' ); ?>
 						<?php $vip_users_table->display(); ?>
 						<?php
 							if ( $vip_users_table->has_items() )

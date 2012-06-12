@@ -176,7 +176,6 @@ class VIP_User_Table extends WP_List_Table {
 
   <form action="" method="post" name="addusers" id="addusers"><table style="display: none"><tbody id="inlineedit">
     <?php wp_nonce_field( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' ) ?>
-    <input type=hidden name=form value="promote">
 
     <tr id="bulk-edit" class="inline-edit-row <?php echo "bulk-edit-row" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
 
