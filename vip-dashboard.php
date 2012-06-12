@@ -26,7 +26,6 @@ class VIP_Dashboard {
 	private $version               = '1.0.0';
 
 	private $option_name           = 'vip_dashboard';
-	private $dashboard_slug    		 = 'vip_dashboard';
 	private $users_slug						 = 'vip_dashboard_users';
 
 	function __construct() {
@@ -55,12 +54,7 @@ class VIP_Dashboard {
 	}
 
 	public function register_menus() {
-		add_menu_page( esc_html__( 'VIP Dashboard', 'vip-dashboard' ), esc_html__( 'VIP Dashboard', 'vip-dashboard' ), 'administrator', $this->dashboard_slug, plugins_url('vip-dashboard/images/icon.png'), array( &$this, 'dashboard_page'), 3 );
-		add_submenu_page( $this->dashboard_slug, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
-	}
-
-	public function dashboard_page() {
-
+		add_submenu_page( 'index.php', esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
 	}
 
 	public function users_page() {
