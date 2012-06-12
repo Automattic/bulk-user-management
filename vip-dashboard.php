@@ -15,7 +15,7 @@ Domain Path:  /languages/
 
 **************************************************************************/
 
-include('includes/VIP_User_Table.php');
+include('includes/class-vip-user-table.php');
 
 class VIP_Dashboard {
 
