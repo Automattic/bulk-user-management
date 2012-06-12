@@ -103,7 +103,7 @@ class VIP_Dashboard {
 	public function add_users_form() { ?>
 
 		<form>
-			<?php wp_nonce_field( 'bulk-users' ) ?>
+			<?php wp_nonce_field( 'vip-dashboard-add-users', 'vip-dashboard-add-users' ) ?>
 			<input type=hidden name=action value="adduser">
 
 			<div class="form-field">
@@ -134,7 +134,7 @@ class VIP_Dashboard {
 	public function promote_users() {
 		global $current_user, $wp_roles;
 
-		check_admin_referer('bulk-users');
+		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";
 
 		if ( ! current_user_can( 'promote_users' ) )
@@ -164,7 +164,7 @@ class VIP_Dashboard {
 			}
 
 			foreach ( $_REQUEST['blogs'] as $blogid ) {
-				$role = $_REQUEST['new_role'];
+				$role = sanitize_key($_REQUEST['new_role']);
 				if ( $role == 'none' )
 					remove_user_from_blog($id, $blogid);
 				else

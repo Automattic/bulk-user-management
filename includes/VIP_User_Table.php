@@ -175,10 +175,10 @@ class VIP_User_Table extends WP_List_Table {
   ?>
 
   <form action="" method="post" name="addusers" id="addusers"><table style="display: none"><tbody id="inlineedit">
-    <?php wp_nonce_field( 'bulk-users' ) ?>
+    <?php wp_nonce_field( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' ) ?>
     <input type=hidden name=form value="promote">
 
-    <tr id="bulk-edit" class="inline-edit-row inline-edit-row-<?php echo "inline-edit-$screen->post_type bulk-edit-row bulk-edit-$screen->post_type" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
+    <tr id="bulk-edit" class="inline-edit-row <?php echo "bulk-edit-row" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
       <h4><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></h4>
@@ -194,7 +194,7 @@ class VIP_User_Table extends WP_List_Table {
       <ul class="cat-checklist category-checklist">
         <?php foreach ( $this->blog_ids() as $id ): //TODO: replace with blog stickers api ?>
           <?php $blog = get_blog_details($id); ?>
-          <li><label class="selectit"><input id='blog-<?php echo $blog->blog_id; ?>' type=checkbox name=blogs[] value='<?php echo $blog->blog_id; ?>'> <?php echo $blog->blogname; ?></label></li>
+          <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
         <?php endforeach; ?>
       </ul>
     </div></fieldset>
