@@ -45,11 +45,11 @@ class VIP_Dashboard {
 	}
 
 	public function admin_init() {
-		//TODO: register js and css
+		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery') );
 
-		if ( isset($_REQUEST['action']) && 'promote' == $_REQUEST['action'] ) {
+		if ( isset($_REQUEST['form']) && 'promote' == $_REQUEST['form'] ) {
 			$this->promote_users();
-		} elseif ( isset($_REQUEST['action']) && 'createuser' == $_REQUEST['action'] ) {
+		} elseif ( isset($_REQUEST['form']) && 'createuser' == $_REQUEST['form'] ) {
 			$this->create_user();
 		}
 	}
@@ -67,6 +67,7 @@ class VIP_Dashboard {
 
 		$vip_users_table = new VIP_User_Table();
 		$vip_users_table->prepare_items();
+		wp_enqueue_script('vip-dashboard-inline-edit');
 
 		?>
 
@@ -82,6 +83,10 @@ class VIP_Dashboard {
 						<form action="" method="get">
 						<?php $vip_users_table->search_box( __( 'Search Users', 'vip-dashboard' ), 'user' ); ?>
 						<?php $vip_users_table->display(); ?>
+						<?php
+							if ( $vip_users_table->has_items() )
+								$vip_users_table->inline_edit();
+							?>
 						</form>
 					</div>
 				</div>
@@ -96,111 +101,6 @@ class VIP_Dashboard {
 			</div>
 		</div>
 
-<?php
-	}
-
-	public function users_for_blogs($ids = array()) {
-		$users = array();
-		
-		foreach ( $ids as $id ) {
-			foreach ( get_users( array( 'blog_id' => $id ) ) as $user ) {
-				if ( !in_array( $user, $users ) ) {
-					$users[] = $user;
-				}
-			}
-		}
-
-		return $users;
-	}
-
-	//TODO: replace with a "real" admin table
-	public function temp_table($users, $crossreference = array()) {
-		echo '<form action="" method="post" name="addusers" id="addusers">';
-
-		echo '<div class="tablenav top">';
-		echo '<div class="alignleft actions">';
-		echo '<select name="remove">';
-		echo '<option value="-1" selected="selected">Bulk Actions</option>';
-		echo '<option value="remove">Remove</option>';
-		echo '</select>';
-		submit_button( __( 'Apply '), 'secondary', 'docation', false );
-		echo '</div>';
-		echo '</div>';
-
-		echo "<table class='wp-list-table widefat fixed'>";
-
-		echo "<thead>";
-		echo "<tr>";
-		echo "<th><input type=checkbox></th>";
-		echo "<th>Username</th>";
-		echo "<th>Name</th>";
-		echo "<th>E-mail</th>";
-		echo "<th>Sites</th>";
-		echo "</tr>";
-		echo "<thead>";
-
-		echo "<tfoot>";
-		echo "<tr>";
-		echo "<th><input type=checkbox></th>";
-		echo "<th>Username</th>";
-		echo "<th>Name</th>";
-		echo "<th>E-mail</th>";
-		echo "<th>Sites</th>";
-		echo "</tr>";
-		echo "<tfoot>";
-
-		echo "<tbody>";
-
-		echo "<tr id=bulk-edit class='inline-edit-row inline-edit-row-post inline-edit-post bulk-edit-row bulk-edit-row-post bulk-edit-post inline-editor'>";
-
-		echo "<td colspan=5>";
-		$this->promote_users_form($crossreference);
-		echo "</td>";
-
-		echo "</tr>";
-
-		foreach ( $users as $user ) {
-			$blogs = get_blogs_of_user($user->ID);
-			echo "<tr>";
-
-			echo "<td><input type=checkbox name=users[] value='" . $user->ID . "'></td>";
-			echo "<td>" . $user->user_login . "</td>";
-			echo "<td>" . $user->user_nicename . "</td>";
-			echo "<td>" . $user->user_email . "</td>";
-			echo "<td>";
-
-			foreach ( $blogs as $blog )
-				if( in_array($blog->site_id, $crossreference) )
-					echo $blog->blogname . "<br>";
-
-			echo "</td>";
-
-			echo "</tr>";
-		}
-
-		echo "</tbody>";
-
-		echo "</table>";
-		echo "</form>";
-	}
-
-	public function promote_users_form($blogs = array()) { ?>
-			<?php wp_nonce_field( 'bulk-users' ) ?>
-			<input type=hidden name=action value="promote">
-
-			<?php
-				foreach( $blogs as $id ) {
-					$blog = get_blog_details($id);
-					echo "<input id='blog-{$blog->blog_id}' type=checkbox name=blogs[] value='{$blog->blog_id}'> <label for='blog-{$blog->blog_id}'>{$blog->blogname}</label><br>";
-				}
-			?>
-
-			<label for="adduser-role"><?php _e('Role'); ?></label>
-			<select name="new_role" id="new_role-role">
-				<?php wp_dropdown_roles( get_option('default_role') ); ?>
-			</select>
-			
-			<?php submit_button( __( 'Update', 'vip-dashboard' ), 'primary', 'changeit', false ); ?>
 <?php
 	}
 
@@ -236,19 +136,21 @@ class VIP_Dashboard {
 	}
 
 	public function promote_users() {
+		global $current_user, $wp_roles;
+
 		check_admin_referer('bulk-users');
 		$redirect = "admin.php?page=vip_dashboard_users";
 
 		if ( ! current_user_can( 'promote_users' ) )
 			wp_die( __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
 
-		if ( empty($_REQUEST['users']) ) {
+		if ( empty($_REQUEST['users']) || 'modify' != $_REQUEST['action'] ) {
 			wp_redirect($redirect);
 			exit();
 		}
 
 		$editable_roles = get_editable_roles();
-		if ( empty( $editable_roles[$_REQUEST['new_role']] ) )
+		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] )
 			wp_die(__( 'You can&#8217;t give users that role.', 'vip-dashboard' ));
 
 		$userids = $_REQUEST['users'];
@@ -265,12 +167,12 @@ class VIP_Dashboard {
 					continue;
 			}
 
-			foreach ( $_POST['blogs'] as $blogid ) {
-				$user = new WP_User($id, null, $blogid);
-				if ( 'remove' == $_POST['remove'] )
-					$user->remove_all_caps();
-				elseif( isset($_POST['changeit']) )
-					$user->set_role($_REQUEST['new_role']);
+			foreach ( $_REQUEST['blogs'] as $blogid ) {
+				$role = $_REQUEST['new_role'];
+				if ( $role == 'none' )
+					remove_user_from_blog($id, $blogid);
+				else
+					add_user_to_blog($blogid, $id, $role);					
 			}
 		}
 

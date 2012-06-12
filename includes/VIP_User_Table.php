@@ -160,12 +160,67 @@ class VIP_User_Table extends WP_List_Table {
     ) );
   }
 
-  /**
+  function has_items() {
+    return count($this->items) > 0;
+  }
+
+/**
    * Outputs the hidden row displayed when inline editing
    *
    * @since 3.1.0
    */
   function inline_edit() {
-    
+    global $mode;
+    $screen = get_current_screen();
+  ?>
+
+  <form action="" method="post" name="addusers" id="addusers"><table style="display: none"><tbody id="inlineedit">
+    <?php wp_nonce_field( 'bulk-users' ) ?>
+    <input type=hidden name=form value="promote">
+
+    <tr id="bulk-edit" class="inline-edit-row inline-edit-row-<?php echo "inline-edit-$screen->post_type bulk-edit-row bulk-edit-$screen->post_type" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
+
+    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+      <h4><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></h4>
+
+      <div id="bulk-title-div">
+        <div id="bulk-titles"></div>
+      </div>
+    </div></fieldset>
+
+    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+      <span class="title inline-edit-categories-label"><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></span>
+
+      <ul class="cat-checklist category-checklist">
+        <?php foreach ( $this->blog_ids() as $id ): //TODO: replace with blog stickers api ?>
+          <?php $blog = get_blog_details($id); ?>
+          <li><label class="selectit"><input id='blog-<?php echo $blog->blog_id; ?>' type=checkbox name=blogs[] value='<?php echo $blog->blog_id; ?>'> <?php echo $blog->blogname; ?></label></li>
+        <?php endforeach; ?>
+      </ul>
+    </div></fieldset>
+
+    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+      <label class="inline-edit-user">
+        <span class="title"><?php _e( 'Role', 'vip-dashboard' ); ?></span>
+        <select name="new_role" id="new_role-role">
+          <option value="none"> &mdash; None &mdash; </option>
+          <?php wp_dropdown_roles( get_option('default_role') ); ?>
+        </select>
+      </label>
+    </div></fieldset>
+
+    <p class="submit inline-edit-save">
+      <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'vip-dashboard' ); ?></a>
+      <?php submit_button( __( 'Update', 'vip-dashboard' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
+      <input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
+      <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
+      <span class="error" style="display:none"></span>
+      <br class="clear" />
+    </p>
+
+    </td></tr>
+
+    </tbody></table></form>
+<?php
   }
 }
