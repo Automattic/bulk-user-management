@@ -49,9 +49,9 @@ class VIP_Dashboard {
 		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery'), $this->version );
 
 		if ( isset($_REQUEST['form']) && 'promote' == $_REQUEST['form'] ) {
-			$this->promote_users();
+			$this->handle_promote_users_form();
 		} elseif ( isset($_REQUEST['form']) && 'createuser' == $_REQUEST['form'] ) {
-			$this->create_user();
+			$this->handle_create_users_form();
 		}
 	}
 
@@ -82,7 +82,7 @@ class VIP_Dashboard {
 						<?php
 							if ( $vip_users_table->has_items() )
 								$vip_users_table->inline_edit();
-							?>
+						?>
 						</form>
 					</div>
 				</div>
@@ -131,9 +131,7 @@ class VIP_Dashboard {
 <?php
 	}
 
-	public function promote_users() {
-		global $current_user, $wp_roles;
-
+	public function handle_promote_users_form() {
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";
 
@@ -149,22 +147,32 @@ class VIP_Dashboard {
 		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] )
 			wp_die(__( 'You can&#8217;t give users that role.', 'vip-dashboard' ));
 
-		$userids = $_REQUEST['users'];
+		$blogids = array_map('intval', $_REQUEST['blogs']);
+		$userids = array_map('intval', $_REQUEST['users']);
+		$role = sanitize_key($_REQUEST['new_role']);
+
+		$update = $this->promote_users($blogids, $userids, $role);
+
+		wp_redirect(add_query_arg('update', $update, $redirect));
+		exit();
+	}
+
+	public function promote_users($blogids = array(), $userids = array(), $role) {
+		global $current_user, $wp_roles;
 		$update = 'promote';
+
 		foreach ( $userids as $id ) {
-			$id = (int) $id;
 
 			if ( ! current_user_can('promote_user', $id) )
 				wp_die(__( 'You can&#8217;t edit that user.', 'vip-dashboard' ));
 			// The new role of the current user must also have the promote_users cap or be a multisite super admin
-			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $_REQUEST['new_role'] ]->has_cap('promote_users')
+			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap('promote_users')
 				&& ! ( is_multisite() && is_super_admin() ) ) {
 					$update = 'err_admin_role';
 					continue;
 			}
 
-			foreach ( $_REQUEST['blogs'] as $blogid ) {
-				$role = sanitize_key($_REQUEST['new_role']);
+			foreach ( $blogids as $blogid ) {
 				if ( $role == 'none' )
 					remove_user_from_blog($id, $blogid);
 				else
@@ -172,8 +180,7 @@ class VIP_Dashboard {
 			}
 		}
 
-		wp_redirect(add_query_arg('update', $update, $redirect));
-		exit();
+		return $update;		
 	}
 }
 
