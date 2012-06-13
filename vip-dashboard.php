@@ -134,6 +134,16 @@ class VIP_Dashboard {
 <?php
 	}
 
+	public function handle_create_users_form() {
+		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
+		$redirect = "admin.php?page=vip_dashboard_users";
+
+		//
+
+		wp_redirect(add_query_arg('update', $update, $redirect));
+		exit();
+	}
+
 	public function handle_promote_users_form() {
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";

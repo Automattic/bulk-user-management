@@ -127,7 +127,6 @@ class VIP_User_Table extends WP_List_Table {
 
     $this->process_bulk_action();
 
-    // TODO: replace with blog stickers API
     $blog_ids = $this->blog_ids();
 
     $meta_query = array();
