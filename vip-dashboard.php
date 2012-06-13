@@ -148,6 +148,10 @@ class VIP_Dashboard {
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";
 
+		$blogids = array_map('intval', $_REQUEST['blogs']);
+		$userids = array_map('intval', $_REQUEST['users']);
+		$role = sanitize_key($_REQUEST['new_role']);
+
 		if ( ! current_user_can( 'promote_users' ) )
 			wp_die( __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
 
@@ -160,9 +164,16 @@ class VIP_Dashboard {
 		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] )
 			wp_die(__( 'You can&#8217;t give users that role.', 'vip-dashboard' ));
 
-		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$userids = array_map('intval', $_REQUEST['users']);
-		$role = sanitize_key($_REQUEST['new_role']);
+		foreach ( $userids as $id ) {
+			if ( ! current_user_can('promote_user', $id) )
+				wp_die(__( 'You can&#8217;t edit that user.', 'vip-dashboard' ));
+			// The new role of the current user must also have the promote_users cap or be a multisite super admin
+			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap('promote_users')
+				&& ! ( is_multisite() && is_super_admin() ) ) {
+					$update = 'err_admin_role';
+					continue;
+			}
+		}
 
 		$update = $this->promote_users($blogids, $userids, $role);
 
@@ -175,15 +186,6 @@ class VIP_Dashboard {
 		$update = 'promote';
 
 		foreach ( $userids as $id ) {
-
-			if ( ! current_user_can('promote_user', $id) )
-				wp_die(__( 'You can&#8217;t edit that user.', 'vip-dashboard' ));
-			// The new role of the current user must also have the promote_users cap or be a multisite super admin
-			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap('promote_users')
-				&& ! ( is_multisite() && is_super_admin() ) ) {
-					$update = 'err_admin_role';
-					continue;
-			}
 
 			foreach ( $blogids as $blogid ) {
 				if ( $role == 'none' )
