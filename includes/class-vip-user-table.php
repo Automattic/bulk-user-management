@@ -30,10 +30,10 @@ class VIP_User_Table extends WP_List_Table {
 
   function column_username($item){
     $actions = array();
-    $actions['edit'] = '<a href="#">Edit</a>';
-    if ( get_current_user_id() !== $item->ID )
-      $actions['delete'] = '<a href="#">Delete</a>';
- 
+    if ( get_current_user_id() == $item->ID ) {
+      $actions['edit'] = '<a href="' . admin_url('profile.php') . '">Edit</a>';
+    }
+
     return sprintf( __('%1$s %2$s <span style="color:silver">(id:%3$s)</span>%4$s', 'vip-dashboard' ),
         /*$1%s*/ get_avatar($item->ID, 32),
         /*$2%s*/ $item->user_login,
@@ -190,7 +190,7 @@ class VIP_User_Table extends WP_List_Table {
     </div></fieldset>
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
-      <span class="title inline-edit-categories-label"><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></span>
+      <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'vip-dashboard' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
         <?php foreach ( $this->blog_ids() as $id ): ?>

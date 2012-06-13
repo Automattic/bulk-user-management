@@ -50,7 +50,7 @@ class VIP_Dashboard {
 
 		if ( isset($_REQUEST['action']) && 'modify' == $_REQUEST['action'] ) {
 			$this->handle_promote_users_form();
-		} elseif ( isset($_REQUEST['action']) && 'createuser' == $_REQUEST['action'] ) {
+		} elseif ( isset($_REQUEST['action']) && 'adduser' == $_REQUEST['action'] ) {
 			$this->handle_create_users_form();
 		}
 	}
@@ -137,8 +137,6 @@ class VIP_Dashboard {
 	public function handle_create_users_form() {
 		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";
-
-		//
 
 		wp_redirect(add_query_arg('update', $update, $redirect));
 		exit();
