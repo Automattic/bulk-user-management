@@ -53,13 +53,13 @@ class VIP_User_Table extends WP_List_Table {
   function column_sites($item){
     $blogs = get_blogs_of_user($item->ID);
 
-    // TODO: replace with blog stickers API
     $crossreference = $this->blog_ids();
 
     $sites = '';
     foreach ( $blogs as $blog )
-      if( in_array($blog->site_id, $crossreference) )
+      if( in_array($blog->userblog_id, $crossreference) )
           $sites .= $blog->blogname . "<br>";
+
     return $sites;
   }
 
@@ -103,8 +103,10 @@ class VIP_User_Table extends WP_List_Table {
     $user_id = get_current_user_id();
     $blogs = get_blogs_of_user($user_id, false);
     $blog_ids = array();
+    $limit = array_map( 'intval', apply_filters('vip_dashboard_users_limit_blogs', array()) );
     foreach ( $blogs as $blog )
-      $blog_ids[] = $blog->userblog_id;
+      if ( count($limit) == 0 || in_array($blog->userblog_id, $limit) )
+        $blog_ids[] = $blog->userblog_id;
 
     return $blog_ids;
   }
@@ -126,11 +128,12 @@ class VIP_User_Table extends WP_List_Table {
     $this->process_bulk_action();
 
     // TODO: replace with blog stickers API
-    $blog_ids = $this->blog_ids();    
+    $blog_ids = $this->blog_ids();
 
     $meta_query = array();
+    $meta_query['relation'] = 'OR';
     foreach ( $blog_ids as $blog_id )
-      $meta_query[]['meta_key'] = $wpdb->get_blog_prefix( $blog_id ). '_capabilities';
+      $meta_query[]['key'] = $wpdb->get_blog_prefix( $blog_id ). 'capabilities';
 
     $args = array(
       'blog_id'    => null,
@@ -191,7 +194,7 @@ class VIP_User_Table extends WP_List_Table {
       <span class="title inline-edit-categories-label"><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
-        <?php foreach ( $this->blog_ids() as $id ): //TODO: replace with blog stickers api ?>
+        <?php foreach ( $this->blog_ids() as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
         <?php endforeach; ?>
