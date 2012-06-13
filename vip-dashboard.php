@@ -26,12 +26,12 @@ class VIP_Dashboard {
 	private $version               = '1.0.0';
 
 	private $option_name           = 'vip_dashboard';
-	private $users_slug						 = 'vip_dashboard_users';
-	private $parent_page					 = 'index.php';
+	private $users_slug            = 'vip_dashboard_users';
+	private $parent_page           = 'index.php';
 
 	function __construct() {
 		add_action( 'init',           array( &$this, 'init' ) );
-		add_action( 'admin_init', 		array( &$this, 'admin_init' ) );
+		add_action( 'admin_init',     array( &$this, 'admin_init' ) );
 
 		add_action( 'admin_menu',     array( &$this, 'register_menus' ) );
 	}
