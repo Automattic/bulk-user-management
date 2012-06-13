@@ -138,6 +138,20 @@ class VIP_Dashboard {
 		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";
 
+		$blogids = array_map('intval', $_REQUEST['blogs']);
+		$userids = explode(',', $_REQUEST['users']);
+		$role = sanitize_key($_REQUEST['new_role']);
+		$message = '';
+
+		if ( ! current_user_can('create_users') )
+			wp_die(__('Cheatin&#8217; uh?'));
+
+		if ( has_action('vip_dashboard_users_invite') )
+			do_action('vip_dashboard_users_invite', $blogids, $userids, $role, $message);
+		else {
+			//TODO: handle invites if no action exists
+		}
+
 		wp_redirect(add_query_arg('update', $update, $redirect));
 		exit();
 	}
@@ -147,7 +161,7 @@ class VIP_Dashboard {
 		$redirect = "admin.php?page=vip_dashboard_users";
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$userids = array_map('intval', $_REQUEST['users']);
+		$userids = array_map('sanitize_email', $_REQUEST['users']);
 		$role = sanitize_key($_REQUEST['new_role']);
 
 		if ( ! current_user_can( 'promote_users' ) )
