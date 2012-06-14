@@ -37,11 +37,13 @@ class VIP_Dashboard {
     
 		add_action( 'wpmu_activate_user',                  array( &$this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( &$this, 'invite_message' ), 5, 5 );
+
+		add_filter('set-screen-option', array( &$this, 'vip_dashboard_users_per_page_save' ), 10, 3);
 	}
 
 	public function init() {
 		$this->default_settings = array(
-			
+			'per_page' => 20
 		);
 
 		$this->settings = wp_parse_args( (array) get_option( $this->option_name ), $this->default_settings );
@@ -59,7 +61,24 @@ class VIP_Dashboard {
 	}
 
 	public function register_menus() {
-		add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
+		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
+		add_action( "load-$hook", array( &$this, 'vip_dashboard_users_per_page' ) );
+	}
+
+	public function vip_dashboard_users_per_page() {
+		$option = 'per_page';
+
+		$args = array(
+		'label' => 'Users',
+		'default' => $this->settings['per_page'],
+		'option' => 'vip_dashboard_users_per_page'
+		);
+
+		add_screen_option( $option, $args );
+	}
+
+	public function vip_dashboard_users_per_page_save($status, $option, $value) {
+		if ( 'vip_dashboard_users_per_page' == $option ) return $value;
 	}
 
 	public function users_page() {

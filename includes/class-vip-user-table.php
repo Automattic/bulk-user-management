@@ -115,10 +115,15 @@ class VIP_User_Table extends WP_List_Table {
 
   function prepare_items() {
     global $wpdb, $usersearch;
+    $screen = get_current_screen();
+
+    $per_page = $screen->get_option('per_page', 'option');
+    $per_page = get_user_meta( get_current_user_id(), $per_page, true ); 
+    if ( empty ( $per_page) || $per_page < 1 ) {
+      $per_page = $screen->get_option( 'per_page', 'default' );
+    }
 
     $usersearch = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
-    
-    $per_page = $this->get_items_per_page( 'users_per_page' );
 
     $paged = $this->get_pagenum();
 
