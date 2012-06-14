@@ -30,10 +30,13 @@ class VIP_Dashboard {
 	private $parent_page           = 'index.php';
 
 	function __construct() {
-		add_action( 'init',           array( &$this, 'init' ) );
-		add_action( 'admin_init',     array( &$this, 'admin_init' ) );
-
-		add_action( 'admin_menu',     array( &$this, 'register_menus' ) );
+		add_action( 'init',                                array( &$this, 'init' ) );
+		add_action( 'admin_init',                          array( &$this, 'admin_init' ) );
+    
+		add_action( 'admin_menu',                          array( &$this, 'register_menus' ) );
+    
+		add_action( 'wpmu_activate_user',                  array( &$this, 'add_to_blogs' ), 5, 3 );
+		add_action( 'wpmu_signup_user_notification_email', array( &$this, 'invite_message' ), 5, 5 );
 	}
 
 	public function init() {
@@ -123,6 +126,20 @@ class VIP_Dashboard {
 			</div>
 
 			<div class="form-field">
+				<ul>
+				<?php
+					$vip_users_table = new VIP_User_Table();
+					$blogs = $vip_users_table->blog_ids();
+
+					foreach ( $blogs as $id ) {
+						$blog = get_blog_details($id);
+						echo "<li><input id='adduserblog-{$blog->blog_id}' type=checkbox name=blogs[] value='{$blog->blog_id}'> <label id='adduserblog-{$blog->blog_id}'>{$blog->blogname}</label></li>";
+					}
+				?>
+				</ul>
+			</div>
+
+			<div class="form-field">
 				<label for="message">Message</label>
 				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"></textarea>
 				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
@@ -135,25 +152,79 @@ class VIP_Dashboard {
 	}
 
 	public function handle_create_users_form() {
+		global $wpdb;
+
 		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
-		$redirect = "admin.php?page=vip_dashboard_users";
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$userids = explode(',', $_REQUEST['users']);
+		$emails = array_map( 'sanitize_email', explode(',', $_REQUEST['emails']) );
 		$role = sanitize_key($_REQUEST['new_role']);
-		$message = '';
+		$message = sanitize_text_field($_REQUEST['message']);
 
 		if ( ! current_user_can('create_users') )
 			wp_die(__('Cheatin&#8217; uh?'));
 
 		if ( has_action('vip_dashboard_users_invite') )
-			do_action('vip_dashboard_users_invite', $blogids, $userids, $role, $message);
+			do_action('vip_dashboard_users_invite', $blogids, $emails, $role, $message);
 		else {
-			//TODO: handle invites if no action exists
+			$redirect = $this->create_users($blogids, $emails, $role, $message);
 		}
 
-		wp_redirect(add_query_arg('update', $update, $redirect));
+		wp_redirect( $redirect );
 		exit();
+	}
+
+	public function create_users($blogids, $emails, $role, $message) {
+		$redirect = "admin.php?page=vip_dashboard_users";
+
+		foreach ( $emails as $email ) {
+			$username = explode('@', $email);
+			$username = sanitize_user($username[0], true);
+
+			// Adding a new user to this blog
+			$user_details = wpmu_validate_user_signup( $username, $email );
+			unset( $user_details[ 'errors' ]->errors[ 'user_email_used' ] );
+			if ( is_wp_error( $user_details[ 'errors' ] ) && !empty( $user_details[ 'errors' ]->errors ) ) {
+				$add_user_errors = $user_details[ 'errors' ];
+			} else {
+				$new_user_login = apply_filters('pre_user_login', sanitize_user(stripslashes($username), true));
+				if ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() ) {
+					add_filter( 'wpmu_signup_user_notification', '__return_false' ); // Disable confirmation email
+				}
+				wpmu_signup_user( $new_user_login, $email, array( 'add_to_blogs' => $blogids, 'new_role' => $role, 'message' => $message ) );
+				if ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() ) {
+					$key = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $email ) );
+					wpmu_activate_signup( $key );
+					$redirect = add_query_arg( array('update' => 'addnoconfirmation'), 'user-new.php' );
+				} else {
+					$redirect = add_query_arg( array('update' => 'newuserconfimation'), 'user-new.php' );
+				}
+			}
+		}
+
+		return $redirect;
+	}
+
+	public function add_to_blogs($userid, $password, $meta) {
+		global $current_site;
+		if ( !empty( $meta[ 'add_to_blogs' ] ) ) {
+			$blogids = $meta[ 'add_to_blogs' ];
+			$role = $meta[ 'new_role' ];
+			remove_user_from_blog($userid, $current_site->blog_id); // remove user from main blog.
+			foreach( $blogids as $blog_id )
+				add_user_to_blog( $blog_id, $userid, $role );
+			update_user_meta( $userid, 'primary_blog', $blogids[0] );
+		}
+	}
+
+	public function invite_message($message, $user, $email, $key, $meta) {
+		$meta = unserialize($meta);
+
+		if ( !empty( $meta[ 'message' ] ) ) {
+			return $message . $meta[ 'message' ];
+		}
+
+		return $message;
 	}
 
 	public function handle_promote_users_form() {
