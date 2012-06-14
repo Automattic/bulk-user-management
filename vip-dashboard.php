@@ -22,12 +22,12 @@ class VIP_Dashboard {
 	public $settings               = array();
 	public $default_settings       = array();
 
-	// Using "private" for read-only functionality. See __get().
 	private $version               = '1.0.0';
 
 	private $option_name           = 'vip_dashboard';
 	private $users_slug            = 'vip_dashboard_users';
 	private $parent_page           = 'index.php';
+	private $per_page              = 20;
 
 	function __construct() {
 		add_action( 'init',                                array( &$this, 'init' ) );
@@ -40,17 +40,18 @@ class VIP_Dashboard {
 
 		//Handle GET and POST requests
 		add_action( 'admin_init', array( &$this, 'handle_promote_users_form' ) );
-		add_action( 'admin_init', array( &$this, 'handle_create_users_form' ) );
+		add_action( 'admin_init', array( &$this, 'handle_add_users_form' ) );
 
 		add_filter('set-screen-option', array( &$this, 'vip_dashboard_users_per_page_save' ), 10, 3);
 	}
 
 	public function init() {
 		$this->default_settings = array(
-			'per_page' => 20
+			
 		);
-
 		$this->settings = wp_parse_args( (array) get_option( $this->option_name ), $this->default_settings );
+
+		// Allow the parent page to be filtered
 		$this->parent_page = apply_filters('vip_dashboard_users_parent_page', $this->parent_page);
 	}
 
@@ -63,22 +64,31 @@ class VIP_Dashboard {
 		add_action( "load-$hook", array( &$this, 'vip_dashboard_users_per_page' ) );
 	}
 
+	/**
+	 * Set up the screen option for the number of users per page
+	 */
 	public function vip_dashboard_users_per_page() {
 		$option = 'per_page';
 
 		$args = array(
 		'label' => 'Users',
-		'default' => $this->settings['per_page'],
+		'default' => $this->per_page,
 		'option' => 'vip_dashboard_users_per_page'
 		);
 
 		add_screen_option( $option, $args );
 	}
 
+	/**
+	 * Save the screen option for users per page
+	 */
 	public function vip_dashboard_users_per_page_save($status, $option, $value) {
 		if ( 'vip_dashboard_users_per_page' == $option ) return $value;
 	}
 
+	/**
+	 * Generate the users page
+	 */
 	public function users_page() {
 
 		$vip_users_table = new VIP_User_Table();
@@ -88,7 +98,7 @@ class VIP_Dashboard {
 		?>
 
 		<div class=wrap>
-			<?php screen_icon(); // TODO: icon ?>
+			<?php screen_icon(); ?>
 
 			<h2><?php esc_html_e( 'Users', 'vip-dashboard' ); ?></h2>
 
@@ -123,6 +133,9 @@ class VIP_Dashboard {
 <?php
 	}
 
+	/**
+	 * Generate the add users form
+	 */
 	public function add_users_form() { ?>
 
 		<form>
@@ -169,7 +182,11 @@ class VIP_Dashboard {
 <?php
 	}
 
-	public function handle_create_users_form() {
+	/**
+	 * Validate and sanitize data from the add users form before creating
+	 * them and adding them to the correct blogs
+	 */
+	public function handle_add_users_form() {
 		global $wpdb;
 
 		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] )
@@ -195,6 +212,9 @@ class VIP_Dashboard {
 		exit();
 	}
 
+	/**
+	 * Create users, send notification emails, add entry to signups table
+	 */
 	public function create_users($blogids, $emails, $role, $message) {
 		$redirect = "admin.php?page=vip_dashboard_users";
 
@@ -226,6 +246,10 @@ class VIP_Dashboard {
 		return $redirect;
 	}
 
+	/**
+	 * Add user to the blogs that were listed in the invitation process
+	 * after they activate their account
+	 */
 	public function add_to_blogs($userid, $password, $meta) {
 		global $current_site;
 		if ( !empty( $meta[ 'add_to_blogs' ] ) ) {
@@ -238,6 +262,9 @@ class VIP_Dashboard {
 		}
 	}
 
+	/**
+	 * Optionally add a custom message to the end of the invitation
+	 */
 	public function invite_message($message, $user, $email, $key, $meta) {
 		$meta = unserialize($meta);
 
@@ -248,6 +275,10 @@ class VIP_Dashboard {
 		return $message;
 	}
 
+	/**
+	 * Validate and sanitize data from the bulk edit form before
+	 * actually assigning new roles to users
+	 */
 	public function handle_promote_users_form() {
 		global $current_user, $wp_roles;
 
@@ -290,6 +321,9 @@ class VIP_Dashboard {
 		exit();
 	}
 
+	/**
+	 * Add/remote/modify role of specified users on specified sites
+	 */
 	public function promote_users($blogids = array(), $userids = array(), $role) {
 		$update = 'promote';
 
