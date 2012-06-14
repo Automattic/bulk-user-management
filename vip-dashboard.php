@@ -163,7 +163,7 @@ class VIP_Dashboard {
 				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
 			</div>
 			
-			<?php submit_button( __( 'Add User', 'vip-dashboard' ), 'primary', 'adduser', true ); ?>
+			<?php submit_button( __( 'Add Users', 'vip-dashboard' ), 'primary', 'adduser', true ); ?>
 		</form>
 
 <?php
