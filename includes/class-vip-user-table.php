@@ -11,8 +11,8 @@ class VIP_User_Table extends WP_List_Table {
             
     //Set parent defaults
     parent::__construct( array(
-        'singular'  => 'vip_user',
-        'plural'    => 'vip_users'
+      'singular'  => 'vip_user',
+      'plural'    => 'vip_users'
     ) );
   }
 
@@ -22,9 +22,9 @@ class VIP_User_Table extends WP_List_Table {
 
   function column_cb($item){
     return sprintf(
-        '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-        /*$1%s*/ $this->_args['singular'],
-        /*$2%s*/ $item->ID
+      '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+      /*$1%s*/ $this->_args['singular'],
+      /*$2%s*/ $item->ID
     );
   }
 
@@ -35,10 +35,10 @@ class VIP_User_Table extends WP_List_Table {
     }
 
     return sprintf( __('%1$s %2$s <span style="color:silver">(id:%3$s)</span>%4$s', 'vip-dashboard' ),
-        /*$1%s*/ get_avatar($item->ID, 32),
-        /*$2%s*/ $item->user_login,
-        /*$3%s*/ $item->ID,
-        /*$4%s*/ $this->row_actions($actions)
+      /*$1%s*/ get_avatar($item->ID, 32),
+      /*$2%s*/ $item->user_login,
+      /*$3%s*/ $item->ID,
+      /*$4%s*/ $this->row_actions($actions)
     );
   }
 
@@ -58,34 +58,34 @@ class VIP_User_Table extends WP_List_Table {
     $sites = '';
     foreach ( $blogs as $blog )
       if( in_array($blog->userblog_id, $crossreference) )
-          $sites .= $blog->blogname . "<br>";
+        $sites .= $blog->blogname . "<br>";
 
     return $sites;
   }
 
   function get_columns(){
     $columns = array(
-        'cb'       => '<input type="checkbox" />',
-        'username' => __( 'Username', 'vip-dashboard' ),
-        'name'     => __( 'Name', 'vip-dashboard' ),
-        'email'    => __( 'E-mail', 'vip-dashboard' ),
-        'sites'    => __( 'Sites', 'vip-dashboard' ),
+      'cb'       => '<input type="checkbox" />',
+      'username' => __( 'Username', 'vip-dashboard' ),
+      'name'     => __( 'Name', 'vip-dashboard' ),
+      'email'    => __( 'E-mail', 'vip-dashboard' ),
+      'sites'    => __( 'Sites', 'vip-dashboard' ),
     );
     return $columns;
   }
 
   function get_sortable_columns() {
     $sortable_columns = array(
-        'username' => array('username',false),
-        'name'     => array('name',false),
-        'email'    => array('email',false)
+      'username' => array('username',false),
+      'name'     => array('name',false),
+      'email'    => array('email',false)
     );
     return $sortable_columns;
   }
 
   function get_bulk_actions() {
     $actions = array(
-        'modify'    => __( 'Modify', 'vip-dashboard' ),
+      'modify'    => __( 'Modify', 'vip-dashboard' ),
     );
     return $actions;
   }
