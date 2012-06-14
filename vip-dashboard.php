@@ -113,34 +113,35 @@ class VIP_Dashboard {
 			<input type=hidden name=action value="adduser">
 
 			<div class="form-field">
-				<label for="emails">Emails</label>
+				<label for="emails"><?php _e( 'Emails', 'vip-dashboard' ); ?></label>
 				<textarea id="emails" name="emails"></textarea>
 				<p>Invite up to 10 email addresses separated by commas.</p>
 			</div>
 
 			<div class="form-field">
-				<label for="adduser-role"><?php _e('Role'); ?></label>
+				<label for="adduser-role"><?php _e( 'Role', 'vip-dashboard' ); ?></label>
 				<select name="new_role" id="new_role-role">
 					<?php wp_dropdown_roles( get_option('default_role') ); ?>
 				</select>
 			</div>
 
 			<div class="form-field">
-				<ul>
+				<?php _e( 'Sites', 'vip-dashboard' ); ?>
+				<fieldset>
 				<?php
 					$vip_users_table = new VIP_User_Table();
 					$blogs = $vip_users_table->blog_ids();
 
 					foreach ( $blogs as $id ) {
 						$blog = get_blog_details($id);
-						echo "<li><input id='adduserblog-{$blog->blog_id}' type=checkbox name=blogs[] value='{$blog->blog_id}'> <label id='adduserblog-{$blog->blog_id}'>{$blog->blogname}</label></li>";
+						echo "<label class='selectit'><input style='width:auto' type=checkbox name=blogs[] value='{$blog->blog_id}'> {$blog->blogname}</label>";
 					}
 				?>
-				</ul>
+				</fieldset>
 			</div>
 
 			<div class="form-field">
-				<label for="message">Message</label>
+				<label for="message"><?php _e( 'Message', 'vip-dashboard' ); ?></label>
 				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"></textarea>
 				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
 			</div>
