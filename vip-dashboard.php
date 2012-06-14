@@ -38,6 +38,10 @@ class VIP_Dashboard {
 		add_action( 'wpmu_activate_user',                  array( &$this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( &$this, 'invite_message' ), 5, 5 );
 
+		//Handle GET and POST requests
+		add_action( 'admin_init', array( &$this, 'handle_promote_users_form' ) );
+		add_action( 'admin_init', array( &$this, 'handle_create_users_form' ) );
+
 		add_filter('set-screen-option', array( &$this, 'vip_dashboard_users_per_page_save' ), 10, 3);
 	}
 
@@ -52,12 +56,6 @@ class VIP_Dashboard {
 
 	public function admin_init() {
 		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery'), $this->version );
-
-		if ( isset($_REQUEST['action']) && 'modify' == $_REQUEST['action'] ) {
-			$this->handle_promote_users_form();
-		} elseif ( isset($_REQUEST['action']) && 'adduser' == $_REQUEST['action'] ) {
-			$this->handle_create_users_form();
-		}
 	}
 
 	public function register_menus() {
@@ -174,6 +172,9 @@ class VIP_Dashboard {
 	public function handle_create_users_form() {
 		global $wpdb;
 
+		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] )
+			return;
+
 		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
@@ -248,11 +249,16 @@ class VIP_Dashboard {
 	}
 
 	public function handle_promote_users_form() {
+		global $current_user, $wp_roles;
+
+		if ( !isset($_REQUEST['action']) || 'modify' != $_REQUEST['action'] )
+			return;
+
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
 		$redirect = "admin.php?page=vip_dashboard_users";
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$userids = array_map('sanitize_email', $_REQUEST['users']);
+		$userids = array_map('intval', $_REQUEST['users']);
 		$role = sanitize_key($_REQUEST['new_role']);
 
 		if ( ! current_user_can( 'promote_users' ) )
@@ -285,7 +291,6 @@ class VIP_Dashboard {
 	}
 
 	public function promote_users($blogids = array(), $userids = array(), $role) {
-		global $current_user, $wp_roles;
 		$update = 'promote';
 
 		foreach ( $userids as $id ) {
