@@ -261,7 +261,7 @@ class VIP_Dashboard {
 			}
 		}
 
-		$redirect = add_query_arg( $args, 'admin.php?page=vip_dashboard_users');
+		$redirect = add_query_arg( $args, $this->parent_page . '?page=vip_dashboard_users' );
 		wp_redirect( $redirect );
 		exit();
 	}
@@ -341,7 +341,7 @@ class VIP_Dashboard {
 			return;
 
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
-		$redirect = "admin.php?page=vip_dashboard_users";
+		$redirect = $this->parent_page . "?page=vip_dashboard_users";
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
