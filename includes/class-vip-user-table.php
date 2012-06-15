@@ -105,10 +105,11 @@ class VIP_User_Table extends WP_List_Table {
     $blogs = get_blogs_of_user($user_id, false);
     $blog_ids = array();
     $limit = array_map( 'intval', apply_filters('vip_dashboard_users_limit_blogs', array()) );
-    foreach ( $blogs as $blog )
-      if ( count($limit) == 0 || in_array($blog->userblog_id, $limit) )
+    foreach ( $blogs as $blog ) {
+      $user = new WP_User($user_id, null, $blog->userblog_id);
+      if ( user_can( $user, 'list_users' ) && ( count($limit) == 0 || in_array($blog->userblog_id, $limit) ) )
         $blog_ids[] = $blog->userblog_id;
-
+    }
     return $blog_ids;
   }
 
