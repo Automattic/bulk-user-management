@@ -229,7 +229,6 @@ class VIP_Dashboard {
 	 */
 	public function handle_add_users_form() {
 		global $wpdb;
-		$redirect = 'admin.php?page=vip_dashboard_users';
 
 		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] )
 			return;
@@ -251,17 +250,18 @@ class VIP_Dashboard {
 			$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
 			if ( isset( $errors ) ) {
 				$errors = explode(':', $errors);
-				$update = $errors[0];
-				$people = $errors[1];
-				$redirect = add_query_arg( array('update' => $update), $redirect );
-				$redirect = add_query_arg( array('users' => $people), $redirect );
+				$args = array(
+					'update' => $errors[0],
+					'people' => $errors[1]
+				);
 			} elseif ( $noconfirmation ) {
-				$redirect = add_query_arg( array('update' => 'addnoconfirmation'), $redirect );
+				$args = array( 'update' => 'addnoconfirmation' );
 			} else {
-				$redirect = add_query_arg( array('update' => 'newuserconfimation'), $redirect );
+				$args = array( 'update' => 'newuserconfimation' );
 			}
 		}
 
+		$redirect = add_query_arg( $args, 'admin.php?page=vip_dashboard_users');
 		wp_redirect( $redirect );
 		exit();
 	}
@@ -380,7 +380,7 @@ class VIP_Dashboard {
 
 		$this->promote_users($blogids, $userids, $role);
 
-		wp_redirect(add_query_arg('update', $update, $redirect));
+		wp_redirect( add_query_arg('update', $update, $redirect) );
 		exit();
 	}
 
