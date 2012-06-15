@@ -71,9 +71,9 @@ class VIP_Dashboard {
 		$option = 'per_page';
 
 		$args = array(
-		'label' => 'Users',
-		'default' => $this->per_page,
-		'option' => 'vip_dashboard_users_per_page'
+			'label' => 'Users',
+			'default' => $this->per_page,
+			'option' => 'vip_dashboard_users_per_page'
 		);
 
 		add_screen_option( $option, $args );
@@ -95,12 +95,47 @@ class VIP_Dashboard {
 		$vip_users_table->prepare_items();
 		wp_enqueue_script('vip-dashboard-inline-edit');
 
+		if ( isset( $_GET['update'] ) ) {
+			$messages = array();
+			switch ( $_GET['update'] ) {
+				case "newuserconfimation":
+					$messages[] = __( 'Invitation email sent to new users. A confirmation link must be clicked before their account is created.', 'vip-dashboard' );
+					break;
+				case "addnoconfirmation":
+					$messages[] = __( 'Users have been added to your site.', 'vip-dashboard' );
+					break;
+				case "addexisting":
+					$messages[] = __( 'That user is already a member of this site.', 'vip-dashboard' );
+					break;
+				case "does_not_exist":
+					$messages[] = __( 'Please enter a valid email address.', 'vip-dashboard' );
+					break;
+				case 'promote':
+					$messages[] = __( 'User roles were modified', 'vip-dashboard' );
+					break;
+				case 'err_admin_role':
+					$messages[] = __( 'The new role of the current user must still be able to promote users.', 'vip-dashboard' );
+					break;
+				case 'add_user_errors':
+					$messages[] = __( 'Problems addings users: ' . $_GET['users'], 'vip-dashboard' );
+					break;
+			}
+		}
+
 		?>
 
 		<div class=wrap>
 			<?php screen_icon(); ?>
 
 			<h2><?php esc_html_e( 'Users', 'vip-dashboard' ); ?></h2>
+
+			<?php
+				if ( !empty ( $messages ) ) {
+					foreach( $messages as $msg ) {
+						echo '<div id="message" class="updated below-h2"><p>' . $msg . '</p></div>';
+					}
+				}
+			?>
 
 			<div class='col-container'>
 
@@ -175,6 +210,12 @@ class VIP_Dashboard {
 				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"></textarea>
 				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
 			</div>
+
+			<?php if ( is_super_admin() ): ?>
+			<div class="form-field">
+				<label><input style="width:auto" type=checkbox name="noconfirmation"<?php if ( WP_DEBUG ) echo " checked"; ?>> <?php _e( 'Skip Confirmation Email', 'vip-dashboard' ); ?></label>
+			</div>
+			<?php endif; ?>
 			
 			<?php submit_button( __( 'Add Users', 'vip-dashboard' ), 'primary', 'adduser', true ); ?>
 		</form>
@@ -188,6 +229,7 @@ class VIP_Dashboard {
 	 */
 	public function handle_add_users_form() {
 		global $wpdb;
+		$redirect = 'admin.php?page=vip_dashboard_users';
 
 		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] )
 			return;
@@ -198,6 +240,7 @@ class VIP_Dashboard {
 		$emails = array_map( 'sanitize_email', explode(',', $_REQUEST['emails']) );
 		$role = sanitize_key($_REQUEST['new_role']);
 		$message = sanitize_text_field($_REQUEST['message']);
+		$noconfirmation =  ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() );
 
 		if ( ! current_user_can('create_users') )
 			wp_die(__('Cheatin&#8217; uh?'));
@@ -205,7 +248,18 @@ class VIP_Dashboard {
 		if ( has_action('vip_dashboard_users_invite') )
 			do_action('vip_dashboard_users_invite', $blogids, $emails, $role, $message);
 		else {
-			$redirect = $this->create_users($blogids, $emails, $role, $message);
+			$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
+			if ( isset( $errors ) ) {
+				$errors = explode(':', $errors);
+				$update = $errors[0];
+				$people = $errors[1];
+				$redirect = add_query_arg( array('update' => $update), $redirect );
+				$redirect = add_query_arg( array('users' => $people), $redirect );
+			} elseif ( $noconfirmation ) {
+				$redirect = add_query_arg( array('update' => 'addnoconfirmation'), $redirect );
+			} else {
+				$redirect = add_query_arg( array('update' => 'newuserconfimation'), $redirect );
+			}
 		}
 
 		wp_redirect( $redirect );
@@ -215,8 +269,10 @@ class VIP_Dashboard {
 	/**
 	 * Create users, send notification emails, add entry to signups table
 	 */
-	public function create_users($blogids, $emails, $role, $message) {
-		$redirect = "admin.php?page=vip_dashboard_users";
+	public function create_users($blogids, $emails, $role, $message, $noconfirmation) {
+		if ( $noconfirmation ) {
+			add_filter( 'wpmu_signup_user_notification', '__return_false' ); // Disable confirmation email
+		}
 
 		foreach ( $emails as $email ) {
 			$username = explode('@', $email);
@@ -226,24 +282,24 @@ class VIP_Dashboard {
 			$user_details = wpmu_validate_user_signup( $username, $email );
 			unset( $user_details[ 'errors' ]->errors[ 'user_email_used' ] );
 			if ( is_wp_error( $user_details[ 'errors' ] ) && !empty( $user_details[ 'errors' ]->errors ) ) {
-				$add_user_errors = $user_details[ 'errors' ];
+				$add_user_errors[$username] = $user_details[ 'errors' ];
 			} else {
 				$new_user_login = apply_filters('pre_user_login', sanitize_user(stripslashes($username), true));
-				if ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() ) {
-					add_filter( 'wpmu_signup_user_notification', '__return_false' ); // Disable confirmation email
-				}
 				wpmu_signup_user( $new_user_login, $email, array( 'add_to_blogs' => $blogids, 'new_role' => $role, 'message' => $message ) );
-				if ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() ) {
+				if ( $noconfirmation ) {
 					$key = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $email ) );
 					wpmu_activate_signup( $key );
-					$redirect = add_query_arg( array('update' => 'addnoconfirmation'), 'user-new.php' );
-				} else {
-					$redirect = add_query_arg( array('update' => 'newuserconfimation'), 'user-new.php' );
 				}
 			}
 		}
 
-		return $redirect;
+		if ( isset( $add_user_errors ) ) {
+			foreach ( $add_user_errors as $user => $error ) {
+				$users[] = $user;
+			}
+			return 'add_user_errors:' . implode(',', $users);
+		}
+			
 	}
 
 	/**
@@ -267,11 +323,9 @@ class VIP_Dashboard {
 	 */
 	public function invite_message($message, $user, $email, $key, $meta) {
 		$meta = unserialize($meta);
-
 		if ( !empty( $meta[ 'message' ] ) ) {
 			return $message . $meta[ 'message' ];
 		}
-
 		return $message;
 	}
 
@@ -281,6 +335,7 @@ class VIP_Dashboard {
 	 */
 	public function handle_promote_users_form() {
 		global $current_user, $wp_roles;
+		$update = "promote";
 
 		if ( !isset($_REQUEST['action']) || 'modify' != $_REQUEST['action'] )
 			return;
@@ -292,30 +347,38 @@ class VIP_Dashboard {
 		$userids = array_map('intval', $_REQUEST['users']);
 		$role = sanitize_key($_REQUEST['new_role']);
 
-		if ( ! current_user_can( 'promote_users' ) )
-			wp_die( __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+		if ( ! current_user_can( 'promote_users' ) ) {
+			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+			wp_die( $error->get_error_message() );
+		}
 
-		if ( empty($_REQUEST['users']) || 'modify' != $_REQUEST['action'] ) {
+		if ( empty($_REQUEST['users']) ) {
 			wp_redirect($redirect);
 			exit();
 		}
 
 		$editable_roles = get_editable_roles();
-		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] )
-			wp_die(__( 'You can&#8217;t give users that role.', 'vip-dashboard' ));
+		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] ) {
+			$error = new WP_Error( 'no-editable-role', __( 'You can&#8217;t give users that role.', 'vip-dashboard' ) );
+			wp_die( $error->get_error_message() );
+		}
 
 		foreach ( $userids as $id ) {
-			if ( ! current_user_can('promote_user', $id) )
-				wp_die(__( 'You can&#8217;t edit that user.', 'vip-dashboard' ));
+			if ( ! current_user_can('promote_user', $id) ) {
+				$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+				wp_die( $error->get_error_message() );
+			}
 			// The new role of the current user must also have the promote_users cap or be a multisite super admin
 			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap('promote_users')
 				&& ! ( is_multisite() && is_super_admin() ) ) {
+					//TODO: this isn't actually doing anything, the way it is currently written
+					// maybe just pull those id's out of the array?
 					$update = 'err_admin_role';
 					continue;
 			}
 		}
 
-		$update = $this->promote_users($blogids, $userids, $role);
+		$this->promote_users($blogids, $userids, $role);
 
 		wp_redirect(add_query_arg('update', $update, $redirect));
 		exit();
@@ -325,10 +388,7 @@ class VIP_Dashboard {
 	 * Add/remote/modify role of specified users on specified sites
 	 */
 	public function promote_users($blogids = array(), $userids = array(), $role) {
-		$update = 'promote';
-
 		foreach ( $userids as $id ) {
-
 			foreach ( $blogids as $blogid ) {
 				if ( $role == 'none' )
 					remove_user_from_blog($id, $blogid);
@@ -336,8 +396,6 @@ class VIP_Dashboard {
 					add_user_to_blog($blogid, $id, $role);					
 			}
 		}
-
-		return $update;		
 	}
 }
 
