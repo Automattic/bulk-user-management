@@ -34,11 +34,10 @@ class VIP_User_Table extends WP_List_Table {
       $actions['edit'] = '<a href="' . admin_url('profile.php') . '">Edit</a>';
     }
 
-    return sprintf( __('%1$s %2$s <span style="color:silver">(id:%3$s)</span>%4$s', 'vip-dashboard' ),
+    return sprintf( __('%1$s %2$s %3$s', 'vip-dashboard' ),
       /*$1%s*/ get_avatar($item->ID, 32),
       /*$2%s*/ $item->user_login,
-      /*$3%s*/ $item->ID,
-      /*$4%s*/ $this->row_actions($actions)
+      /*$3%s*/ $this->row_actions($actions)
     );
   }
 
@@ -94,9 +93,9 @@ class VIP_User_Table extends WP_List_Table {
 
   function process_bulk_action() {
     switch( $this->current_action() ) {
-      case 'modify':
-        wp_die( __("Modify Bulk Action"), 'vip-dashboard' );
-        break;
+      // case 'modify':
+      //   wp_die( __("Modify Bulk Action"), 'vip-dashboard' );
+      //   break;
     }
   }
 
