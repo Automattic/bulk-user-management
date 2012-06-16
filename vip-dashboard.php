@@ -35,6 +35,7 @@ class VIP_Dashboard {
     
 		add_action( 'admin_menu',                          array( &$this, 'register_menus' ) );
     
+    add_action( 'vip_dashboard_users_invite',          array( &$this, 'invite_users'), 5, 5 );
 		add_action( 'wpmu_activate_user',                  array( &$this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( &$this, 'invite_message' ), 5, 5 );
 
@@ -244,10 +245,13 @@ class VIP_Dashboard {
 		if ( ! current_user_can('create_users') )
 			wp_die(__('Cheatin&#8217; uh?'));
 
-		if ( has_action('vip_dashboard_users_invite') )
-			do_action('vip_dashboard_users_invite', $blogids, $emails, $role, $message);
-		else {
-			$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
+		// Invite users
+		do_action('vip_dashboard_users_invite', $blogids, $emails, $role, $message, $noconfirmation);
+	}
+
+	public function invite_users( $blogids, $emails, $role, $message, $noconfirmation ) {
+		$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
+
 			if ( isset( $errors ) ) {
 				$errors = explode(':', $errors);
 				$args = array(
@@ -259,7 +263,6 @@ class VIP_Dashboard {
 			} else {
 				$args = array( 'update' => 'newuserconfimation' );
 			}
-		}
 
 		$redirect = add_query_arg( $args, $this->parent_page . '?page=vip_dashboard_users' );
 		wp_redirect( $redirect );
