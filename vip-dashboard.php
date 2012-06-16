@@ -126,7 +126,7 @@ class VIP_Dashboard {
 		?>
 
 		<div class=wrap>
-			<?php screen_icon(); ?>
+			<?php screen_icon('users'); ?>
 
 			<h2><?php esc_html_e( 'Users', 'vip-dashboard' ); ?></h2>
 
