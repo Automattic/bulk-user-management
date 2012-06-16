@@ -25,7 +25,7 @@ class VIP_Dashboard {
 	private $version               = '1.0.0';
 
 	private $option_name           = 'vip_dashboard';
-	private $users_slug            = 'vip_dashboard_users';
+	private $page_slug             = 'vip_dashboard_users';
 	private $parent_page           = 'index.php';
 	private $per_page              = 20;
 
@@ -61,7 +61,7 @@ class VIP_Dashboard {
 	}
 
 	public function register_menus() {
-		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->users_slug, array( &$this, 'users_page' ) );
+		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->page_slug, array( &$this, 'users_page' ) );
 		add_action( "load-$hook", array( &$this, 'vip_dashboard_users_per_page' ) );
 	}
 
