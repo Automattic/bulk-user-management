@@ -30,20 +30,20 @@ class VIP_Dashboard {
 	private $per_page              = 20;
 
 	function __construct() {
-		add_action( 'init',                                array( &$this, 'init' ) );
-		add_action( 'admin_init',                          array( &$this, 'admin_init' ) );
+		add_action( 'init',                                array( $this, 'init' ) );
+		add_action( 'admin_init',                          array( $this, 'admin_init' ) );
     
-		add_action( 'admin_menu',                          array( &$this, 'register_menus' ) );
+		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
     
-    add_action( 'vip_dashboard_users_invite',          array( &$this, 'invite_users'), 5, 5 );
-		add_action( 'wpmu_activate_user',                  array( &$this, 'add_to_blogs' ), 5, 3 );
-		add_action( 'wpmu_signup_user_notification_email', array( &$this, 'invite_message' ), 5, 5 );
+    add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 5 );
+		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
+		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
 		//Handle GET and POST requests
-		add_action( 'admin_init', array( &$this, 'handle_promote_users_form' ) );
-		add_action( 'admin_init', array( &$this, 'handle_add_users_form' ) );
+		add_action( 'admin_init', array( $this, 'handle_promote_users_form' ) );
+		add_action( 'admin_init', array( $this, 'handle_add_users_form' ) );
 
-		add_filter('set-screen-option', array( &$this, 'vip_dashboard_users_per_page_save' ), 10, 3);
+		add_filter('set-screen-option', array( $this, 'vip_dashboard_users_per_page_save' ), 10, 3);
 	}
 
 	public function init() {
@@ -61,8 +61,8 @@ class VIP_Dashboard {
 	}
 
 	public function register_menus() {
-		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->page_slug, array( &$this, 'users_page' ) );
-		add_action( "load-$hook", array( &$this, 'vip_dashboard_users_per_page' ) );
+		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->page_slug, array( $this, 'users_page' ) );
+		add_action( "load-$hook", array( $this, 'vip_dashboard_users_per_page' ) );
 	}
 
 	/**
