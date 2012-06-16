@@ -214,7 +214,7 @@ class VIP_Dashboard {
 
 			<?php if ( is_super_admin() ): ?>
 			<div class="form-field">
-				<label><input style="width:auto" type=checkbox name="noconfirmation"<?php if ( WP_DEBUG ) echo " checked"; ?>> <?php _e( 'Skip Confirmation Email', 'vip-dashboard' ); ?></label>
+				<label><input style="width:auto" type=checkbox name="noconfirmation"> <?php _e( 'Skip Confirmation Email', 'vip-dashboard' ); ?></label>
 			</div>
 			<?php endif; ?>
 			
