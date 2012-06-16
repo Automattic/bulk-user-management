@@ -146,7 +146,7 @@ class VIP_Dashboard {
 							<input type=hidden name=page value="vip_dashboard_users">
 							<?php $vip_users_table->search_box( __( 'Search Users', 'vip-dashboard' ), 'user' ); ?>
 						</form>
-						<form action="" method="get">
+						<form action="" method="post">
 						<?php $vip_users_table->display(); ?>
 						<?php
 							if ( $vip_users_table->has_items() )
@@ -174,7 +174,7 @@ class VIP_Dashboard {
 	 */
 	public function add_users_form() { ?>
 
-		<form>
+		<form action="" method="post">
 			<?php wp_nonce_field( 'vip-dashboard-add-users', 'vip-dashboard-add-users' ) ?>
 			<input type=hidden name=action value="adduser">
 
