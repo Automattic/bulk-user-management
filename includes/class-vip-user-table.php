@@ -55,7 +55,7 @@ class VIP_User_Table extends WP_List_Table {
     $sites = '';
     foreach ( $blogs as $blog )
       if( in_array($blog->userblog_id, $crossreference) ) {
-        $sites .= "<a href='{$blog->siteurl}'>";
+        $sites .= sprintf( '<a href="%s">', esc_attr( $blog->siteurl ) );
         $sites .= $blog->domain;
         if ( '/' != $blog->path )
           $sites .= $blog->path;

@@ -118,7 +118,7 @@ class VIP_Dashboard {
 					$messages[] = __( 'The new role of the current user must still be able to promote users.', 'vip-dashboard' );
 					break;
 				case 'add_user_errors':
-					$messages[] = __( 'Problems addings users: ' . $_GET['users'], 'vip-dashboard' );
+					$messages[] = sprintf( __( 'Problems adding users: %s', 'vip-dashboard' ), sanitize_text_field( $_GET['users'] ) );
 					break;
 			}
 		}
@@ -200,7 +200,7 @@ class VIP_Dashboard {
 
 					foreach ( $blogs as $id ) {
 						$blog = get_blog_details($id);
-						echo "<label class='selectit'><input style='width:auto' type=checkbox name=blogs[] value='{$blog->blog_id}'> {$blog->blogname}</label>";
+						printf("<label class='selectit'><input style='width:auto' type=checkbox name=blogs[] value='%d'> %s</label>", intval($blog->blog_id), esc_attr($blog->blogname) );
 					}
 				?>
 				</fieldset>
