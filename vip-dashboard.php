@@ -231,7 +231,8 @@ class VIP_Dashboard {
 	public function handle_add_users_form() {
 		global $wpdb;
 
-		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] )
+		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] ||
+			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
 		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
@@ -340,7 +341,8 @@ class VIP_Dashboard {
 		global $current_user, $wp_roles;
 		$update = "promote";
 
-		if ( !isset($_REQUEST['action']) || 'modify' != $_REQUEST['action'] )
+		if ( !isset($_REQUEST['action']) || 'modify' != $_REQUEST['action'] ||
+			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
