@@ -180,14 +180,21 @@ class VIP_Dashboard {
 
 			<div class="form-field">
 				<label for="emails"><?php _e( 'Emails', 'vip-dashboard' ); ?></label>
-				<textarea id="emails" name="emails"></textarea>
+				<textarea id="emails" name="emails"><?php
+						if ( isset( $_POST['emails']) ) {
+							echo esc_textarea( $_POST['emails'] );
+						}
+					?></textarea>
 				<p>Invite up to 10 email addresses separated by commas.</p>
 			</div>
 
 			<div class="form-field">
 				<label for="adduser-role"><?php _e( 'Role', 'vip-dashboard' ); ?></label>
 				<select name="new_role" id="new_role-role">
-					<?php wp_dropdown_roles( get_option('default_role') ); ?>
+					<?php
+						$role = isset( $_POST['new_role'] ) ? esc_attr( $_POST['new_role'] ) : get_option('default_role');
+						wp_dropdown_roles( $role );
+					?>
 				</select>
 			</div>
 
@@ -200,7 +207,8 @@ class VIP_Dashboard {
 
 					foreach ( $blogs as $id ) {
 						$blog = get_blog_details($id);
-						printf("<label class='selectit'><input style='width:auto' type=checkbox name=blogs[] value='%d'> %s</label>", intval($blog->blog_id), esc_attr($blog->blogname) );
+						$checked = isset( $_POST['blogs'] ) && in_array( $id, $_POST['blogs'] ) ? 'checked' : '';
+						printf("<label class='selectit'><input style='width:auto' type=checkbox name=blogs[] value='%d'%s> %s</label>", intval($blog->blog_id), $checked, esc_attr($blog->blogname) );
 					}
 				?>
 				</fieldset>
@@ -208,13 +216,17 @@ class VIP_Dashboard {
 
 			<div class="form-field">
 				<label for="message"><?php _e( 'Message', 'vip-dashboard' ); ?></label>
-				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"></textarea>
+				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"><?php
+						if ( isset( $_POST['message']) ) {
+							echo esc_textarea( $_POST['message'] );
+						}
+					?></textarea>
 				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
 			</div>
 
 			<?php if ( is_super_admin() ): ?>
 			<div class="form-field">
-				<label><input style="width:auto" type=checkbox name="noconfirmation"> <?php _e( 'Skip Confirmation Email', 'vip-dashboard' ); ?></label>
+				<label><input style="width:auto" type=checkbox name="noconfirmation"<?php if ( isset( $_POST['noconfirmation'] ) ) echo "checked";?>> <?php _e( 'Skip Confirmation Email', 'vip-dashboard' ); ?></label>
 			</div>
 			<?php endif; ?>
 			
@@ -254,20 +266,18 @@ class VIP_Dashboard {
 		$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
 
 			if ( isset( $errors ) ) {
-				$errors = explode(':', $errors);
-				$args = array(
-					'update' => $errors[0],
-					'people' => $errors[1]
-				);
-			} elseif ( $noconfirmation ) {
-				$args = array( 'update' => 'addnoconfirmation' );
+				$_GET['update'] = 'add_user_errors';
+				$_POST['errors'] = $errors;
 			} else {
-				$args = array( 'update' => 'newuserconfimation' );
-			}
-
-		$redirect = add_query_arg( $args, $this->parent_page . '?page=vip_dashboard_users' );
-		wp_redirect( $redirect );
-		exit();
+				if ( $noconfirmation ) {
+					$args = array( 'update' => 'addnoconfirmation' );
+				} else {
+					$args = array( 'update' => 'newuserconfimation' );
+				}
+				$redirect = add_query_arg( $args, $this->parent_page . '?page=vip_dashboard_users' );
+				wp_redirect( $redirect );
+				exit();
+			}		
 	}
 
 	/**
@@ -298,10 +308,7 @@ class VIP_Dashboard {
 		}
 
 		if ( isset( $add_user_errors ) ) {
-			foreach ( $add_user_errors as $user => $error ) {
-				$users[] = $user;
-			}
-			return 'add_user_errors:' . implode(',', $users);
+			return $add_user_errors;
 		}
 			
 	}
