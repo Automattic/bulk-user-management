@@ -118,7 +118,15 @@ class VIP_Dashboard {
 					$messages[] = __( 'The new role of the current user must still be able to promote users.', 'vip-dashboard' );
 					break;
 				case 'add_user_errors':
-					$messages[] = sprintf( __( 'Problems adding users: %s', 'vip-dashboard' ), sanitize_text_field( $_GET['users'] ) );
+					foreach ( $_POST['errors'] as $email => $error ) {
+						$email = sanitize_email( $email );
+						if ( is_wp_error( $error ) ) {
+							$error_messages = $error->get_error_messages();
+							foreach ( $error_messages as $message ) {
+								$messages[] = $message . ' (' . $email . ')';
+							}
+						}
+					}
 					break;
 			}
 		}
@@ -296,7 +304,7 @@ class VIP_Dashboard {
 			$user_details = wpmu_validate_user_signup( $username, $email );
 			unset( $user_details[ 'errors' ]->errors[ 'user_email_used' ] );
 			if ( is_wp_error( $user_details[ 'errors' ] ) && !empty( $user_details[ 'errors' ]->errors ) ) {
-				$add_user_errors[$username] = $user_details[ 'errors' ];
+				$add_user_errors[$email] = $user_details[ 'errors' ];
 			} else {
 				$new_user_login = apply_filters('pre_user_login', sanitize_user(stripslashes($username), true));
 				wpmu_signup_user( $new_user_login, $email, array( 'add_to_blogs' => $blogids, 'new_role' => $role, 'message' => $message ) );
