@@ -32,6 +32,8 @@ class VIP_User_Table extends WP_List_Table {
     $actions = array();
     if ( get_current_user_id() == $item->ID ) {
       $actions['edit'] = '<a href="' . admin_url('profile.php') . '">Edit</a>';
+    } elseif ( current_user_can('edit_users') ) {
+      $actions['edit'] = '<a href="' . add_query_arg( 'user_id', $item->ID, admin_url('user-edit.php') ) . '">Edit</a>';
     }
 
     return sprintf( __('%1$s %2$s %3$s', 'vip-dashboard' ),
