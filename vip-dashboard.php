@@ -271,6 +271,7 @@ class VIP_Dashboard {
 	}
 
 	public function invite_users( $blogids, $emails, $role, $message, $noconfirmation ) {
+		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 		$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
 
 			if ( isset( $errors ) ) {
@@ -282,7 +283,7 @@ class VIP_Dashboard {
 				} else {
 					$args = array( 'update' => 'newuserconfimation' );
 				}
-				$redirect = add_query_arg( $args, $this->parent_page . '?page=vip_dashboard_users' );
+				$redirect = add_query_arg( $args, $redirect );
 				wp_redirect( $redirect );
 				exit();
 			}		
@@ -361,7 +362,7 @@ class VIP_Dashboard {
 			return;
 
 		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
-		$redirect = $this->parent_page . "?page=vip_dashboard_users";
+		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
