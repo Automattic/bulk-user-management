@@ -34,6 +34,7 @@ class VIP_Dashboard {
 		add_action( 'admin_init',                          array( $this, 'admin_init' ) );
     
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
+		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
     
     add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 5 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
@@ -85,6 +86,15 @@ class VIP_Dashboard {
 	 */
 	public function vip_dashboard_users_per_page_save($status, $option, $value) {
 		if ( 'vip_dashboard_users_per_page' == $option ) return $value;
+	}
+
+	public function multisite_notice() {
+		global $pagenow;
+		if ( !is_multisite() && current_user_can( 'install_plugins' ) && ( 'plugins.php' == $pagenow || $this->page_slug == $_GET['page'] ) ) {
+			echo '<div class="error">
+			     <p>Please enable multisite to use the User Management plugin.</p>
+			 </div>';
+		}
 	}
 
 	/**
