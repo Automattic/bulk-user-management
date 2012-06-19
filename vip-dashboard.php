@@ -42,6 +42,7 @@ class VIP_Dashboard {
 
 		//Handle GET and POST requests
 		add_action( 'admin_init', array( $this, 'handle_promote_users_form' ) );
+		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_add_users_form' ) );
 
 		add_filter('set-screen-option', array( $this, 'vip_dashboard_users_per_page_save' ), 10, 3);
@@ -122,10 +123,13 @@ class VIP_Dashboard {
 					$messages[] = __( 'Please enter a valid email address.', 'vip-dashboard' );
 					break;
 				case 'promote':
-					$messages[] = __( 'User roles were modified', 'vip-dashboard' );
+					$messages[] = __( 'User roles were modified.', 'vip-dashboard' );
+					break;
+				case 'remove':
+					$messages[] = __( 'Users were removed.', 'vip-dashboard' );
 					break;
 				case 'err_admin_role':
-					$messages[] = __( 'The new role of the current user must still be able to promote users.', 'vip-dashboard' );
+					$messages[] =  __( 'The new role of the current user must still be able to promote users.', 'vip-dashboard' );
 					break;
 				case 'add_user_errors':
 					foreach ( $_POST['errors'] as $email => $error ) {
@@ -167,8 +171,10 @@ class VIP_Dashboard {
 						<form action="" method="post">
 						<?php $vip_users_table->display(); ?>
 						<?php
-							if ( $vip_users_table->has_items() )
+							if ( $vip_users_table->has_items() ) {
 								$vip_users_table->inline_edit();
+								$vip_users_table->bulk_remove();
+							}
 						?>
 						</form>
 					</div>
@@ -421,10 +427,44 @@ class VIP_Dashboard {
 	public function promote_users($blogids = array(), $userids = array(), $role) {
 		foreach ( $userids as $id ) {
 			foreach ( $blogids as $blogid ) {
-				if ( $role == 'none' )
-					remove_user_from_blog($id, $blogid);
-				else
-					add_user_to_blog($blogid, $id, $role);					
+				add_user_to_blog($blogid, $id, $role);					
+			}
+		}
+	}
+
+	public function handle_remove_users_form() {
+		$update = "remove";
+
+		if ( !isset($_REQUEST['action']) || 'remove' != $_REQUEST['action'] ||
+			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
+			return;
+
+		check_admin_referer( 'vip-dashboard-bulk-remove-users', 'vip-dashboard-bulk-remove-users' );
+		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
+
+		$blogids = array_map('intval', $_REQUEST['blogs']);
+		$userids = array_map('intval', $_REQUEST['users']);
+
+		if ( ! current_user_can( 'remove_users' ) ) {
+			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+			wp_die( $error->get_error_message() );
+		}
+
+		if ( empty($_REQUEST['users']) ) {
+			wp_redirect($redirect);
+			exit();
+		}
+
+		$this->remove_users($blogids, $userids);
+
+		wp_redirect( add_query_arg('update', $update, $redirect) );
+		exit();
+	}
+
+	public function remove_users($blogids = array(), $userids = array()) {
+		foreach ( $userids as $userid ) {
+			foreach ( $blogids as $blogid ) {
+				remove_user_from_blog($userid, $blogid);
 			}
 		}
 	}

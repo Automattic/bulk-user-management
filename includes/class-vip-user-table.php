@@ -89,6 +89,7 @@ class VIP_User_Table extends WP_List_Table {
   function get_bulk_actions() {
     $actions = array(
       'modify'    => __( 'Modify', 'vip-dashboard' ),
+      'remove'    => __( 'Remove', 'vip-dashboard' )
     );
     return $actions;
   }
@@ -177,15 +178,13 @@ class VIP_User_Table extends WP_List_Table {
 
 /**
    * Outputs the hidden row displayed when inline editing
-   *
-   * @since 3.1.0
    */
   function inline_edit() {
     global $mode;
     $screen = get_current_screen();
   ?>
 
-  <form action="" method="post" name="addusers" id="addusers"><table style="display: none"><tbody id="inlineedit">
+  <table style="display: none"><tbody id="inlineedit">
     <?php wp_nonce_field( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' ) ?>
 
     <tr id="bulk-edit" class="inline-edit-row <?php echo "bulk-edit-row" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
@@ -213,7 +212,6 @@ class VIP_User_Table extends WP_List_Table {
       <label class="inline-edit-user">
         <span class="title"><?php _e( 'Role', 'vip-dashboard' ); ?></span>
         <select name="new_role" id="new_role-role">
-          <option value="none"> &mdash; None &mdash; </option>
           <?php wp_dropdown_roles( get_option('default_role') ); ?>
         </select>
       </label>
@@ -230,7 +228,54 @@ class VIP_User_Table extends WP_List_Table {
 
     </td></tr>
 
-    </tbody></table></form>
+    </tbody></table>
+<?php
+  }
+
+  /**
+   * Outputs hidden row for bulk removing users
+   */
+  function bulk_remove() {
+    global $mode;
+    $screen = get_current_screen();
+  ?>
+
+  <table style="display: none"><tbody id="inlineedit">
+    <?php wp_nonce_field( 'vip-dashboard-bulk-remove-users', 'vip-dashboard-bulk-remove-users' ) ?>
+
+    <tr id="bulk-remove" class="inline-edit-row <?php echo "bulk-edit-row" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
+
+    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+      <h4><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></h4>
+
+      <div id="bulk-title-div">
+        <div id="bulk-titles"></div>
+      </div>
+    </div></fieldset>
+
+    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+      <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'vip-dashboard' ) ?></span>
+
+      <ul class="cat-checklist category-checklist">
+        <?php foreach ( $this->blog_ids() as $id ): ?>
+          <?php $blog = get_blog_details($id); ?>
+          <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
+        <?php endforeach; ?>
+      </ul>
+    </div></fieldset>
+
+    <p class="submit inline-edit-save">
+      <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'vip-dashboard' ); ?></a>
+      <?php submit_button( __( 'Update', 'vip-dashboard' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
+      <input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
+      <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
+      <span class="error" style="display:none"></span>
+      <br class="clear" />
+    </p>
+
+    </td></tr>
+
+    </tbody></table>
 <?php
   }
 }
