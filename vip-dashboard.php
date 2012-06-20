@@ -35,7 +35,8 @@ class VIP_Dashboard {
     
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
-    
+    	
+    	add_action( 'vip_dashboard_users_invite_form',     array( $this, 'invite_users_form' ) );
     	add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 5 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
@@ -183,7 +184,7 @@ class VIP_Dashboard {
 				<div id='col-left'>
 					<div class='form-wrap'>
 						<h3>Add New User</h3>
-						<?php $this->add_users_form(); ?>
+						<?php do_action('vip_dashboard_users_invite_form'); ?>
 					</div>
 				</div>
 
@@ -196,7 +197,7 @@ class VIP_Dashboard {
 	/**
 	 * Generate the add users form
 	 */
-	public function add_users_form() { ?>
+	public function invite_users_form() { ?>
 
 		<form action="" method="post">
 			<?php wp_nonce_field( 'vip-dashboard-add-users', 'vip-dashboard-add-users' ) ?>
