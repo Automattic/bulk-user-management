@@ -36,7 +36,7 @@ class VIP_Dashboard {
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
     
-    add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 5 );
+    	add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 5 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
@@ -400,22 +400,27 @@ class VIP_Dashboard {
 			wp_die( $error->get_error_message() );
 		}
 
-		foreach ( $userids as $id ) {
-			if ( ! current_user_can('promote_user', $id) ) {
-				$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+		$errors = array();
+		foreach ( $blogids as $blogid ) {
+			if ( ! current_user_can_for_blog($blogid, 'promote_user') ) {
+				$error = new WP_Error( 'no-promote-user-cap', sprintf( __( 'You can&#8217;t edit users on that site.', 'vip-dashboard' ) ) );
+				// Just throw an error because that shouldn't have been possible
 				wp_die( $error->get_error_message() );
 			}
-			// The new role of the current user must also have the promote_users cap or be a multisite super admin
-			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap('promote_users')
+		}
+
+		foreach ( $userids as $userid ) {
+			// The new role of the current user must also have the promote_users cap or be a multisite super admin,
+			// so make sure `$role` can still promote users if the current user is in `$userids`
+			if ( $userid == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap('promote_users')
 				&& ! ( is_multisite() && is_super_admin() ) ) {
-					//TODO: this isn't actually doing anything, the way it is currently written
-					// maybe just pull those id's out of the array?
 					$update = 'err_admin_role';
 					continue;
 			}
 		}
 
-		$this->promote_users($blogids, $userids, $role);
+		if ( 'promote' == $update )
+			$this->promote_users($blogids, $userids, $role);
 
 		wp_redirect( add_query_arg('update', $update, $redirect) );
 		exit();
@@ -432,6 +437,10 @@ class VIP_Dashboard {
 		}
 	}
 
+	/**
+	 * Validate and sanitize a request to remove users, then
+	 * call `remove_users()` to actually remove the users
+	 */
 	public function handle_remove_users_form() {
 		$update = "remove";
 
@@ -461,6 +470,9 @@ class VIP_Dashboard {
 		exit();
 	}
 
+	/**
+	 * Remove users in `$userids` from blogs in `$blogids` with `remove_user_from_blog()`
+	 */
 	public function remove_users($blogids = array(), $userids = array()) {
 		foreach ( $userids as $userid ) {
 			foreach ( $blogids as $blogid ) {
