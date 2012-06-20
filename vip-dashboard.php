@@ -37,14 +37,14 @@ class VIP_Dashboard {
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
     	
     	add_action( 'vip_dashboard_users_invite_form',     array( $this, 'invite_users_form' ) );
-    	add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 5 );
+    	add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 6 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
 		//Handle GET and POST requests
 		add_action( 'admin_init', array( $this, 'handle_promote_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
-		add_action( 'admin_init', array( $this, 'handle_add_users_form' ) );
+		add_action( 'admin_init', array( $this, 'handle_invite_users_form' ) );
 
 		add_filter('set-screen-option', array( $this, 'vip_dashboard_users_per_page_save' ), 10, 3);
 	}
@@ -61,6 +61,7 @@ class VIP_Dashboard {
 
 	public function admin_init() {
 		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery'), $this->version );
+		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), $this->version );
 	}
 
 	public function register_menus() {
@@ -197,20 +198,19 @@ class VIP_Dashboard {
 	/**
 	 * Generate the add users form
 	 */
-	public function invite_users_form() { ?>
+	public function invite_users_form() {
+		wp_enqueue_script('ajax-user-box');
+	?>
 
 		<form action="" method="post">
 			<?php wp_nonce_field( 'vip-dashboard-add-users', 'vip-dashboard-add-users' ) ?>
 			<input type=hidden name=action value="adduser">
 
-			<div class="form-field">
-				<label for="emails"><?php _e( 'Emails', 'vip-dashboard' ); ?></label>
-				<textarea id="emails" name="emails"><?php
-						if ( isset( $_POST['emails']) ) {
-							echo esc_textarea( $_POST['emails'] );
-						}
-					?></textarea>
-				<p>Invite up to 10 email addresses separated by commas.</p>
+			<div id="new-user-and-email" class="form-field">
+				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
+				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
+				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
+				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
 			</div>
 
 			<div class="form-field">
@@ -265,7 +265,7 @@ class VIP_Dashboard {
 	 * Validate and sanitize data from the add users form before creating
 	 * them and adding them to the correct blogs
 	 */
-	public function handle_add_users_form() {
+	public function handle_invite_users_form() {
 		global $wpdb;
 
 		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] ||
@@ -274,22 +274,26 @@ class VIP_Dashboard {
 
 		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
 
-		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$emails = array_map( 'sanitize_email', explode(',', $_REQUEST['emails']) );
-		$role = sanitize_key($_REQUEST['new_role']);
-		$message = sanitize_text_field($_REQUEST['message']);
+		$blogids = array_map( 'intval', $_REQUEST['blogs'] );
+		$emails = array_filter( array_map( 'sanitize_email', $_REQUEST['emails'] ) );
+		$users = array_filter( array_map( 'sanitize_user', $_REQUEST['usernames'] ) );
+		$role = sanitize_key( $_REQUEST['new_role'] );
+		$message = sanitize_text_field( $_REQUEST['message'] );
 		$noconfirmation =  ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() );
 
-		if ( ! current_user_can('create_users') )
-			wp_die(__('Cheatin&#8217; uh?'));
+		foreach ( $blogids as $blog )
+			if ( ! current_user_can_for_blog( $blog, 'create_users') ) {
+				$error = new WP_Error( __( 'Cheatin&#8217; uh?', 'vip-dashboard' ) );
+				wp_die( $error->get_error_message() );
+			}
 
 		// Invite users
-		do_action('vip_dashboard_users_invite', $blogids, $emails, $role, $message, $noconfirmation);
+		do_action('vip_dashboard_users_invite', $blogids, $emails, $users, $role, $message, $noconfirmation);
 	}
 
-	public function invite_users( $blogids, $emails, $role, $message, $noconfirmation ) {
+	public function invite_users( $blogids, $emails, $usernames, $role, $message, $noconfirmation ) {
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
-		$errors = $this->create_users($blogids, $emails, $role, $message, $noconfirmation);
+		$errors = $this->create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation);
 
 			if ( isset( $errors ) ) {
 				$_GET['update'] = 'add_user_errors';
@@ -309,14 +313,15 @@ class VIP_Dashboard {
 	/**
 	 * Create users, send notification emails, add entry to signups table
 	 */
-	public function create_users($blogids, $emails, $role, $message, $noconfirmation) {
+	public function create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation) {
+		global $wpdb;
+		
 		if ( $noconfirmation ) {
 			add_filter( 'wpmu_signup_user_notification', '__return_false' ); // Disable confirmation email
 		}
 
-		foreach ( $emails as $email ) {
-			$username = explode('@', $email);
-			$username = sanitize_user($username[0], true);
+		foreach ( $emails as $key => $email ) {
+			$username = $usernames[$key];
 
 			// Adding a new user to this blog
 			$user_details = wpmu_validate_user_signup( $username, $email );
