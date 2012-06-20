@@ -2,7 +2,7 @@
 
 **************************************************************************
 
-Plugin Name:  VIP Dashboard
+Plugin Name:  Multisite Bulk User Management
 Plugin URI:   
 Description:  
 Version:      1.0.0
@@ -10,22 +10,22 @@ Author:       Automattic
 Author URI:   
 License:      GPLv2 or later
 
-Text Domain:  vip-dashboard
+Text Domain:  bulk-user-management
 Domain Path:  /languages/
 
 **************************************************************************/
 
-include('includes/class-vip-user-table.php');
+include('includes/class-bulk-user-table.php');
 
-class VIP_Dashboard {
+class Bulk_User_Management {
 
 	public $settings               = array();
 	public $default_settings       = array();
 
 	private $version               = '1.0.0';
 
-	private $option_name           = 'vip_dashboard';
-	private $page_slug             = 'vip_dashboard_users';
+	private $option_name           = 'bulk_user_management';
+	private $page_slug             = 'bulk_user_management';
 	private $parent_page           = 'index.php';
 	private $per_page              = 20;
 
@@ -36,8 +36,8 @@ class VIP_Dashboard {
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
     	
-    	add_action( 'vip_dashboard_users_invite_form',     array( $this, 'invite_users_form' ) );
-    	add_action( 'vip_dashboard_users_invite',          array( $this, 'invite_users'), 5, 6 );
+    	add_action( 'bulk_user_management_invite_form',     array( $this, 'invite_users_form' ) );
+    	add_action( 'bulk_user_management_invite',          array( $this, 'invite_users'), 5, 6 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
@@ -46,7 +46,7 @@ class VIP_Dashboard {
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_invite_users_form' ) );
 
-		add_filter('set-screen-option', array( $this, 'vip_dashboard_users_per_page_save' ), 10, 3);
+		add_filter('set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3);
 	}
 
 	public function init() {
@@ -56,29 +56,29 @@ class VIP_Dashboard {
 		$this->settings = wp_parse_args( (array) get_option( $this->option_name ), $this->default_settings );
 
 		// Allow the parent page to be filtered
-		$this->parent_page = apply_filters('vip_dashboard_users_parent_page', $this->parent_page);
+		$this->parent_page = apply_filters('bulk_user_management_parent_page', $this->parent_page);
 	}
 
 	public function admin_init() {
-		wp_register_script( 'vip-dashboard-inline-edit', plugins_url('/js/vip-dashboard-inline-edit.js', __FILE__), array('jquery'), $this->version );
+		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), $this->version );
 		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), $this->version );
 	}
 
 	public function register_menus() {
-		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Users', 'vip-dashboard' ), esc_html__( 'Users', 'vip-dashboard' ), 'manage_options', $this->page_slug, array( $this, 'users_page' ) );
-		add_action( "load-$hook", array( $this, 'vip_dashboard_users_per_page' ) );
+		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', $this->page_slug, array( $this, 'users_page' ) );
+		add_action( "load-$hook", array( $this, 'bulk_user_management_per_page' ) );
 	}
 
 	/**
 	 * Set up the screen option for the number of users per page
 	 */
-	public function vip_dashboard_users_per_page() {
+	public function bulk_user_management_per_page() {
 		$option = 'per_page';
 
 		$args = array(
 			'label' => 'Users',
 			'default' => $this->per_page,
-			'option' => 'vip_dashboard_users_per_page'
+			'option' => 'bulk_user_management_per_page'
 		);
 
 		add_screen_option( $option, $args );
@@ -87,8 +87,8 @@ class VIP_Dashboard {
 	/**
 	 * Save the screen option for users per page
 	 */
-	public function vip_dashboard_users_per_page_save($status, $option, $value) {
-		if ( 'vip_dashboard_users_per_page' == $option ) return $value;
+	public function bulk_user_management_per_page_save($status, $option, $value) {
+		if ( 'bulk_user_management_per_page' == $option ) return $value;
 	}
 
 	public function multisite_notice() {
@@ -105,33 +105,33 @@ class VIP_Dashboard {
 	 */
 	public function users_page() {
 
-		$vip_users_table = new VIP_User_Table();
-		$vip_users_table->prepare_items();
-		wp_enqueue_script('vip-dashboard-inline-edit');
+		$bulk_users_table = new Bulk_User_Table();
+		$bulk_users_table->prepare_items();
+		wp_enqueue_script('bulk-user-management-inline-edit');
 
 		if ( isset( $_GET['update'] ) ) {
 			$messages = array();
 			switch ( $_GET['update'] ) {
 				case "newuserconfimation":
-					$messages[] = __( 'Invitation email sent to new users. A confirmation link must be clicked before their account is created.', 'vip-dashboard' );
+					$messages[] = __( 'Invitation email sent to new users. A confirmation link must be clicked before their account is created.', 'bulk-user-management' );
 					break;
 				case "addnoconfirmation":
-					$messages[] = __( 'Users have been added to your site.', 'vip-dashboard' );
+					$messages[] = __( 'Users have been added to your site.', 'bulk-user-management' );
 					break;
 				case "addexisting":
-					$messages[] = __( 'That user is already a member of this site.', 'vip-dashboard' );
+					$messages[] = __( 'That user is already a member of this site.', 'bulk-user-management' );
 					break;
 				case "does_not_exist":
-					$messages[] = __( 'Please enter a valid email address.', 'vip-dashboard' );
+					$messages[] = __( 'Please enter a valid email address.', 'bulk-user-management' );
 					break;
 				case 'promote':
-					$messages[] = __( 'User roles were modified.', 'vip-dashboard' );
+					$messages[] = __( 'User roles were modified.', 'bulk-user-management' );
 					break;
 				case 'remove':
-					$messages[] = __( 'Users were removed.', 'vip-dashboard' );
+					$messages[] = __( 'Users were removed.', 'bulk-user-management' );
 					break;
 				case 'err_admin_role':
-					$messages[] =  __( 'The new role of the current user must still be able to promote users.', 'vip-dashboard' );
+					$messages[] =  __( 'The new role of the current user must still be able to promote users.', 'bulk-user-management' );
 					break;
 				case 'add_user_errors':
 					foreach ( $_POST['errors'] as $email => $error ) {
@@ -152,7 +152,7 @@ class VIP_Dashboard {
 		<div class=wrap>
 			<?php screen_icon('users'); ?>
 
-			<h2><?php esc_html_e( 'Users', 'vip-dashboard' ); ?></h2>
+			<h2><?php esc_html_e( 'Bulk User Management', 'bulk-user-management' ); ?></h2>
 
 			<?php
 				if ( !empty ( $messages ) ) {
@@ -167,15 +167,15 @@ class VIP_Dashboard {
 				<div id='col-right'>
 					<div class='col-wrap'>
 						<form>
-							<input type=hidden name=page value="vip_dashboard_users">
-							<?php $vip_users_table->search_box( __( 'Search Users', 'vip-dashboard' ), 'user' ); ?>
+							<input type=hidden name=page value="bulk_user_management">
+							<?php $bulk_users_table->search_box( __( 'Search Users', 'bulk-user-management' ), 'user' ); ?>
 						</form>
 						<form action="" method="post">
-						<?php $vip_users_table->display(); ?>
+						<?php $bulk_users_table->display(); ?>
 						<?php
-							if ( $vip_users_table->has_items() ) {
-								$vip_users_table->inline_edit();
-								$vip_users_table->bulk_remove();
+							if ( $bulk_users_table->has_items() ) {
+								$bulk_users_table->inline_edit();
+								$bulk_users_table->bulk_remove();
 							}
 						?>
 						</form>
@@ -185,7 +185,7 @@ class VIP_Dashboard {
 				<div id='col-left'>
 					<div class='form-wrap'>
 						<h3>Add New User</h3>
-						<?php do_action('vip_dashboard_users_invite_form'); ?>
+						<?php do_action('bulk_user_management_invite_form'); ?>
 					</div>
 				</div>
 
@@ -203,7 +203,7 @@ class VIP_Dashboard {
 	?>
 
 		<form action="" method="post">
-			<?php wp_nonce_field( 'vip-dashboard-add-users', 'vip-dashboard-add-users' ) ?>
+			<?php wp_nonce_field( 'bulk-user-management-add-users', 'bulk-user-management-add-users' ) ?>
 			<input type=hidden name=action value="adduser">
 
 			<div id="new-user-and-email" class="form-field">
@@ -214,7 +214,7 @@ class VIP_Dashboard {
 			</div>
 
 			<div class="form-field">
-				<label for="adduser-role"><?php _e( 'Role', 'vip-dashboard' ); ?></label>
+				<label for="adduser-role"><?php _e( 'Role', 'bulk-user-management' ); ?></label>
 				<select name="new_role" id="new_role-role">
 					<?php
 						$role = isset( $_POST['new_role'] ) ? esc_attr( $_POST['new_role'] ) : get_option('default_role');
@@ -224,11 +224,11 @@ class VIP_Dashboard {
 			</div>
 
 			<div class="form-field">
-				<?php _e( 'Sites', 'vip-dashboard' ); ?>
+				<?php _e( 'Sites', 'bulk-user-management' ); ?>
 				<fieldset>
 				<?php
-					$vip_users_table = new VIP_User_Table();
-					$blogs = $vip_users_table->get_blog_ids();
+					$bulk_users_table = new Bulk_User_Table();
+					$blogs = $bulk_users_table->get_blog_ids();
 
 					foreach ( $blogs as $id ) {
 						$blog = get_blog_details($id);
@@ -240,7 +240,7 @@ class VIP_Dashboard {
 			</div>
 
 			<div class="form-field">
-				<label for="message"><?php _e( 'Message', 'vip-dashboard' ); ?></label>
+				<label for="message"><?php _e( 'Message', 'bulk-user-management' ); ?></label>
 				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"><?php
 						if ( isset( $_POST['message']) ) {
 							echo esc_textarea( $_POST['message'] );
@@ -251,11 +251,11 @@ class VIP_Dashboard {
 
 			<?php if ( is_super_admin() ): ?>
 			<div class="form-field">
-				<label><input style="width:auto" type=checkbox name="noconfirmation"<?php if ( isset( $_POST['noconfirmation'] ) ) echo "checked";?>> <?php _e( 'Skip Confirmation Email', 'vip-dashboard' ); ?></label>
+				<label><input style="width:auto" type=checkbox name="noconfirmation"<?php if ( isset( $_POST['noconfirmation'] ) ) echo "checked";?>> <?php _e( 'Skip Confirmation Email', 'bulk-user-management' ); ?></label>
 			</div>
 			<?php endif; ?>
 			
-			<?php submit_button( __( 'Add Users', 'vip-dashboard' ), 'primary', 'adduser', true ); ?>
+			<?php submit_button( __( 'Add Users', 'bulk-user-management' ), 'primary', 'adduser', true ); ?>
 		</form>
 
 <?php
@@ -272,7 +272,7 @@ class VIP_Dashboard {
 			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
-		check_admin_referer( 'vip-dashboard-add-users', 'vip-dashboard-add-users' );
+		check_admin_referer( 'bulk-user-management-add-users', 'bulk-user-management-add-users' );
 
 		$blogids = array_map( 'intval', $_REQUEST['blogs'] );
 		$emails = array_filter( array_map( 'sanitize_email', $_REQUEST['emails'] ) );
@@ -283,12 +283,12 @@ class VIP_Dashboard {
 
 		foreach ( $blogids as $blog )
 			if ( ! current_user_can_for_blog( $blog, 'create_users') ) {
-				$error = new WP_Error( __( 'Cheatin&#8217; uh?', 'vip-dashboard' ) );
+				$error = new WP_Error( __( 'Cheatin&#8217; uh?', 'bulk-user-management' ) );
 				wp_die( $error->get_error_message() );
 			}
 
 		// Invite users
-		do_action('vip_dashboard_users_invite', $blogids, $emails, $users, $role, $message, $noconfirmation);
+		do_action('bulk_user_management_invite', $blogids, $emails, $users, $role, $message, $noconfirmation);
 	}
 
 	public function invite_users( $blogids, $emails, $usernames, $role, $message, $noconfirmation ) {
@@ -315,7 +315,7 @@ class VIP_Dashboard {
 	 */
 	public function create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation) {
 		global $wpdb;
-		
+
 		if ( $noconfirmation ) {
 			add_filter( 'wpmu_signup_user_notification', '__return_false' ); // Disable confirmation email
 		}
@@ -383,7 +383,7 @@ class VIP_Dashboard {
 			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
-		check_admin_referer( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' );
+		check_admin_referer( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' );
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
@@ -391,7 +391,7 @@ class VIP_Dashboard {
 		$role = sanitize_key($_REQUEST['new_role']);
 
 		if ( ! current_user_can( 'promote_users' ) ) {
-			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'bulk-user-management' ) );
 			wp_die( $error->get_error_message() );
 		}
 
@@ -402,14 +402,14 @@ class VIP_Dashboard {
 
 		$editable_roles = get_editable_roles();
 		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] ) {
-			$error = new WP_Error( 'no-editable-role', __( 'You can&#8217;t give users that role.', 'vip-dashboard' ) );
+			$error = new WP_Error( 'no-editable-role', __( 'You can&#8217;t give users that role.', 'bulk-user-management' ) );
 			wp_die( $error->get_error_message() );
 		}
 
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
 			if ( ! current_user_can_for_blog($blogid, 'promote_user') ) {
-				$error = new WP_Error( 'no-promote-user-cap', sprintf( __( 'You can&#8217;t edit users on that site.', 'vip-dashboard' ) ) );
+				$error = new WP_Error( 'no-promote-user-cap', sprintf( __( 'You can&#8217;t edit users on that site.', 'bulk-user-management' ) ) );
 				// Just throw an error because that shouldn't have been possible
 				wp_die( $error->get_error_message() );
 			}
@@ -454,14 +454,14 @@ class VIP_Dashboard {
 			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
-		check_admin_referer( 'vip-dashboard-bulk-remove-users', 'vip-dashboard-bulk-remove-users' );
+		check_admin_referer( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' );
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
 
 		if ( ! current_user_can( 'remove_users' ) ) {
-			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'vip-dashboard' ) );
+			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'bulk-user-management' ) );
 			wp_die( $error->get_error_message() );
 		}
 
@@ -488,4 +488,4 @@ class VIP_Dashboard {
 	}
 }
 
-$VIP_Dashboard = new VIP_Dashboard();
+$Bulk_User_Management = new Bulk_User_Management();

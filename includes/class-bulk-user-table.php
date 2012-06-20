@@ -4,20 +4,20 @@ if(!class_exists('WP_List_Table')){
   require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
-class VIP_User_Table extends WP_List_Table {
+class Bulk_User_Table extends WP_List_Table {
 
   function __construct(){
     global $status, $page;
             
     //Set parent defaults
     parent::__construct( array(
-      'singular'  => 'vip_user',
-      'plural'    => 'vip_users'
+      'singular'  => 'bulk_user',
+      'plural'    => 'bulk_users'
     ) );
   }
 
   function no_items() {
-    _e( 'No matching users were found', 'vip-dashboard' );
+    _e( 'No matching users were found', 'bulk-user-management' );
   }
 
   function column_cb($item){
@@ -36,7 +36,7 @@ class VIP_User_Table extends WP_List_Table {
       $actions['edit'] = '<a href="' . add_query_arg( 'user_id', $item->ID, admin_url('user-edit.php') ) . '">Edit</a>';
     }
 
-    return sprintf( __('%1$s %2$s %3$s', 'vip-dashboard' ),
+    return sprintf( __('%1$s %2$s %3$s', 'bulk-user-management' ),
       /*$1%s*/ get_avatar($item->ID, 32),
       /*$2%s*/ $item->user_login,
       /*$3%s*/ $this->row_actions($actions)
@@ -48,7 +48,7 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   function column_email($item){
-    return sprintf( __('<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>', 'vip-dashboard' ), $item->user_email );
+    return sprintf( __('<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>', 'bulk-user-management' ), $item->user_email );
   }
 
   function column_sites($item){
@@ -69,10 +69,10 @@ class VIP_User_Table extends WP_List_Table {
   function get_columns(){
     $columns = array(
       'cb'       => '<input type="checkbox" />',
-      'username' => __( 'Username', 'vip-dashboard' ),
-      'name'     => __( 'Name', 'vip-dashboard' ),
-      'email'    => __( 'E-mail', 'vip-dashboard' ),
-      'sites'    => __( 'Sites', 'vip-dashboard' ),
+      'username' => __( 'Username', 'bulk-user-management' ),
+      'name'     => __( 'Name', 'bulk-user-management' ),
+      'email'    => __( 'E-mail', 'bulk-user-management' ),
+      'sites'    => __( 'Sites', 'bulk-user-management' ),
     );
     return $columns;
   }
@@ -88,8 +88,8 @@ class VIP_User_Table extends WP_List_Table {
 
   function get_bulk_actions() {
     $actions = array(
-      'modify'    => __( 'Modify', 'vip-dashboard' ),
-      'remove'    => __( 'Remove', 'vip-dashboard' )
+      'modify'    => __( 'Modify', 'bulk-user-management' ),
+      'remove'    => __( 'Remove', 'bulk-user-management' )
     );
     return $actions;
   }
@@ -97,7 +97,7 @@ class VIP_User_Table extends WP_List_Table {
   function process_bulk_action() {
     switch( $this->current_action() ) {
       // case 'modify':
-      //   wp_die( __("Modify Bulk Action"), 'vip-dashboard' );
+      //   wp_die( __("Modify Bulk Action"), 'bulk-user-management' );
       //   break;
     }
   }
@@ -107,7 +107,7 @@ class VIP_User_Table extends WP_List_Table {
     $user_id = get_current_user_id();
     $blogs = get_blogs_of_user($user_id, false);
     $blog_ids = array();
-    $limit = array_map( 'intval', apply_filters('vip_dashboard_users_limit_blogs', array()) );
+    $limit = array_map( 'intval', apply_filters('bulk_user_management_limit_blogs', array()) );
     foreach ( $blogs as $blog ) {
       $user = new WP_User($user_id, null, $blog->userblog_id);
       if ( user_can( $user, 'list_users' ) && ( count($limit) == 0 || in_array($blog->userblog_id, $limit) ) )
@@ -185,12 +185,12 @@ class VIP_User_Table extends WP_List_Table {
   ?>
 
   <table style="display: none"><tbody id="inlineedit">
-    <?php wp_nonce_field( 'vip-dashboard-bulk-users', 'vip-dashboard-bulk-users' ) ?>
+    <?php wp_nonce_field( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' ) ?>
 
     <tr id="bulk-edit" class="inline-edit-row <?php echo "bulk-edit-row" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
-      <h4><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></h4>
+      <h4><?php _e( 'Bulk Edit', 'bulk-user-management' ) ?></h4>
 
       <div id="bulk-title-div">
         <div id="bulk-titles"></div>
@@ -198,7 +198,7 @@ class VIP_User_Table extends WP_List_Table {
     </div></fieldset>
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
-      <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'vip-dashboard' ) ?></span>
+      <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
         <?php foreach ( $this->get_blog_ids() as $id ): ?>
@@ -210,7 +210,7 @@ class VIP_User_Table extends WP_List_Table {
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
       <label class="inline-edit-user">
-        <span class="title"><?php _e( 'Role', 'vip-dashboard' ); ?></span>
+        <span class="title"><?php _e( 'Role', 'bulk-user-management' ); ?></span>
         <select name="new_role" id="new_role-role">
           <?php wp_dropdown_roles( get_option('default_role') ); ?>
         </select>
@@ -218,8 +218,8 @@ class VIP_User_Table extends WP_List_Table {
     </div></fieldset>
 
     <p class="submit inline-edit-save">
-      <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'vip-dashboard' ); ?></a>
-      <?php submit_button( __( 'Update', 'vip-dashboard' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
+      <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'bulk-user-management' ); ?></a>
+      <?php submit_button( __( 'Update', 'bulk-user-management' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
       <input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
       <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
       <span class="error" style="display:none"></span>
@@ -241,12 +241,12 @@ class VIP_User_Table extends WP_List_Table {
   ?>
 
   <table style="display: none"><tbody id="inlineedit">
-    <?php wp_nonce_field( 'vip-dashboard-bulk-remove-users', 'vip-dashboard-bulk-remove-users' ) ?>
+    <?php wp_nonce_field( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' ) ?>
 
     <tr id="bulk-remove" class="inline-edit-row <?php echo "bulk-edit-row" ?>" style="display: none"><td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
-      <h4><?php _e( 'Bulk Edit', 'vip-dashboard' ) ?></h4>
+      <h4><?php _e( 'Bulk Edit', 'bulk-user-management' ) ?></h4>
 
       <div id="bulk-title-div">
         <div id="bulk-titles"></div>
@@ -254,7 +254,7 @@ class VIP_User_Table extends WP_List_Table {
     </div></fieldset>
 
     <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
-      <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'vip-dashboard' ) ?></span>
+      <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
         <?php foreach ( $this->get_blog_ids() as $id ): ?>
@@ -265,8 +265,8 @@ class VIP_User_Table extends WP_List_Table {
     </div></fieldset>
 
     <p class="submit inline-edit-save">
-      <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'vip-dashboard' ); ?></a>
-      <?php submit_button( __( 'Update', 'vip-dashboard' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
+      <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'bulk-user-management' ); ?></a>
+      <?php submit_button( __( 'Update', 'bulk-user-management' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
       <input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
       <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
       <span class="error" style="display:none"></span>
