@@ -53,7 +53,7 @@ class VIP_User_Table extends WP_List_Table {
 
   function column_sites($item){
     $blogs = get_blogs_of_user($item->ID);
-    $crossreference = $this->blog_ids();
+    $crossreference = $this->get_blog_ids();
     $sites = '';
     foreach ( $blogs as $blog )
       if( in_array($blog->userblog_id, $crossreference) ) {
@@ -103,7 +103,7 @@ class VIP_User_Table extends WP_List_Table {
   }
 
   // TODO: replace with blog stickers API
-  function blog_ids() {
+  function get_blog_ids() {
     $user_id = get_current_user_id();
     $blogs = get_blogs_of_user($user_id, false);
     $blog_ids = array();
@@ -137,7 +137,7 @@ class VIP_User_Table extends WP_List_Table {
 
     $this->process_bulk_action();
 
-    $blog_ids = $this->blog_ids();
+    $blog_ids = $this->get_blog_ids();
 
     $meta_query = array();
     $meta_query['relation'] = 'OR';
@@ -201,7 +201,7 @@ class VIP_User_Table extends WP_List_Table {
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'vip-dashboard' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
-        <?php foreach ( $this->blog_ids() as $id ): ?>
+        <?php foreach ( $this->get_blog_ids() as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
         <?php endforeach; ?>
@@ -257,7 +257,7 @@ class VIP_User_Table extends WP_List_Table {
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'vip-dashboard' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
-        <?php foreach ( $this->blog_ids() as $id ): ?>
+        <?php foreach ( $this->get_blog_ids() as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
         <?php endforeach; ?>

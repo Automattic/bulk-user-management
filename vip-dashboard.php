@@ -227,7 +227,7 @@ class VIP_Dashboard {
 				<fieldset>
 				<?php
 					$vip_users_table = new VIP_User_Table();
-					$blogs = $vip_users_table->blog_ids();
+					$blogs = $vip_users_table->get_blog_ids();
 
 					foreach ( $blogs as $id ) {
 						$blog = get_blog_details($id);
