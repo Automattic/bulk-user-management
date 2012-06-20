@@ -36,9 +36,10 @@ class Bulk_User_Table extends WP_List_Table {
       $actions['edit'] = '<a href="' . add_query_arg( 'user_id', $item->ID, admin_url('user-edit.php') ) . '">Edit</a>';
     }
 
+    $login = is_super_admin( $item->ID ) ? $item->user_login . " - <strong>Super Admin</strong>" : $item->user_login;
     return sprintf( __('%1$s %2$s %3$s', 'bulk-user-management' ),
       /*$1%s*/ get_avatar($item->ID, 32),
-      /*$2%s*/ $item->user_login,
+      /*$2%s*/ $login,
       /*$3%s*/ $this->row_actions($actions)
     );
   }
@@ -57,11 +58,9 @@ class Bulk_User_Table extends WP_List_Table {
     $sites = '';
     foreach ( $blogs as $blog )
       if( in_array($blog->userblog_id, $crossreference) ) {
-        $sites .= sprintf( '<a href="%s">', esc_attr( $blog->siteurl ) );
-        $sites .= $blog->domain;
-        if ( '/' != $blog->path )
-          $sites .= $blog->path;
-        $sites .= "</a><br>";
+        $user = new WP_User( $item->ID, null, $blog->userblog_id );
+        $domain = ( '/' == $blog->path ) ? $blog->domain : $blog->domain . $blog->path;
+        $sites .= sprintf( '<a href="%s">%s</a> - %s<br>', esc_attr( $blog->siteurl ), $domain, implode( ', ', $user->roles ) );
       } 
     return $sites;
   }
@@ -167,7 +166,7 @@ class Bulk_User_Table extends WP_List_Table {
     $this->items = $query->get_results();
 
     $this->set_pagination_args( array(
-      "total_items" => $query->total_users,
+      "total_items" => $query->get_total(),
       "per_page" => $per_page,
     ) );
   }
