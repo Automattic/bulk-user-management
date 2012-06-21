@@ -214,10 +214,22 @@ class Bulk_User_Management {
 
 			<div id="new-user-and-email" class="form-field">
 				<div style="display:none"><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
-				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
-				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
-				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
-				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
+				<?php if ( empty( $_REQUEST[ 'emails' ] ) ): ?>
+					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
+					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
+					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
+					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
+				<?php else: ?>
+					<?php
+						foreach( $_REQUEST[ 'emails' ] as $key => $email ) {
+							$email = sanitize_email( $email );
+							$user = sanitize_user( $_REQUEST['usernames'][$key] );
+							if ( $email == "" && $user == "" )
+								continue;
+							printf( '<div><input style="width:45%%" type=text name="usernames[]" placeholder="Username" value="%s"> <input style="width:45%%" type=text name="emails[]" placeholder="Email" value="%s"></div>', $user, $email );
+						}
+					?>
+				<?php endif; ?>
 			</div>
 
 			<div class="form-field">
