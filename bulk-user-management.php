@@ -121,7 +121,7 @@ class Bulk_User_Management {
 				case "addexisting":
 					$messages[] = __( 'That user is already a member of this site.', 'bulk-user-management' );
 					break;
-				case "does_not_exist":
+				case "invalid_email":
 					$messages[] = __( 'Please enter a valid email address.', 'bulk-user-management' );
 					break;
 				case 'promote':
@@ -289,6 +289,13 @@ class Bulk_User_Management {
 			$_GET[ 'update' ] = 'invite_form_error';
 			$_POST[ 'error' ] = new WP_Error( __( 'No users were specified.', 'bulk-user-management' ) );
 			return;
+		}
+
+		foreach ( $emails as $email ) {
+			if ( ! is_email( $email ) ) {
+				$_GET[ 'update' ] = 'invalid_email';
+				return;
+			}
 		}
 
 		check_admin_referer( 'bulk-user-management-add-users', 'bulk-user-management-add-users' );
