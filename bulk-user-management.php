@@ -213,6 +213,7 @@ class Bulk_User_Management {
 			<input type=hidden name=action value="adduser">
 
 			<div id="new-user-and-email" class="form-field">
+				<div style="display:none"><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
 				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
 				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
 				<div><input style="width:49%" type=text name="usernames[]" placeholder="Username"> <input style="width:49%" type=text name="emails[]" placeholder="Email"></div>
