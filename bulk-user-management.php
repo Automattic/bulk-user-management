@@ -216,22 +216,23 @@ class Bulk_User_Management {
 
 			<div id="new-user-and-email" class="form-field">
 				<p class="row" style="display:none"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
-				<?php if ( empty( $_REQUEST[ 'emails' ] ) ): ?>
-					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
-					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
-					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
-					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
-				<?php else: ?>
-					<?php
+				<?php
+					$i=0;
+					if ( isset( $_REQUEST[ 'emails' ] ) ) {
 						foreach( $_REQUEST[ 'emails' ] as $key => $email ) {
 							$email = sanitize_email( $email );
 							$user = sanitize_user( $_REQUEST['usernames'][$key] );
-							if ( $email == "" && $user == "" )
-								continue;
+							if ( $email == "" && $user == "" ) continue;
+
+							$i++;
 							printf( '<p class="row"><input type=text name="usernames[]" placeholder="Username" value="%s"> <input type=text name="emails[]" placeholder="Email" value="%s"></p>', $user, $email );
 						}
-					?>
-				<?php endif; ?>
+					}
+					for( $i=$i; $i<4; $i++ ) {
+						if ( isset( $emails[ $i ] ) || isset( $users[ $i ] ) ) continue;
+						echo '<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>';
+					}
+				?>
 			</div>
 
 			<div class="form-field">
