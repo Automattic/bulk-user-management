@@ -11,6 +11,7 @@ inlineEditUser = {
 
 		// Submit bulk edit option
 		$('#doaction, #doaction2').click(function(e){
+			t.cancel();
 			var n = $(this).attr('id').substr(2);
 			if ( $('select[name="'+n+'"]').val() == 'modify' ) {
 				e.preventDefault();
