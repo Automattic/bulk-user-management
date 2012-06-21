@@ -213,12 +213,12 @@ class Bulk_User_Management {
 			<input type=hidden name=action value="adduser">
 
 			<div id="new-user-and-email" class="form-field">
-				<div style="display:none"><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
+				<p class="row" style="display:none"><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></p>
 				<?php if ( empty( $_REQUEST[ 'emails' ] ) ): ?>
-					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
-					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
-					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
-					<div><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></div>
+					<p class="row"><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input style="width:45%" type=text name="usernames[]" placeholder="Username"> <input style="width:45%" type=text name="emails[]" placeholder="Email"></p>
 				<?php else: ?>
 					<?php
 						foreach( $_REQUEST[ 'emails' ] as $key => $email ) {
@@ -226,7 +226,7 @@ class Bulk_User_Management {
 							$user = sanitize_user( $_REQUEST['usernames'][$key] );
 							if ( $email == "" && $user == "" )
 								continue;
-							printf( '<div><input style="width:45%%" type=text name="usernames[]" placeholder="Username" value="%s"> <input style="width:45%%" type=text name="emails[]" placeholder="Email" value="%s"></div>', $user, $email );
+							printf( '<p class="row"><input style="width:45%%" type=text name="usernames[]" placeholder="Username" value="%s"> <input style="width:45%%" type=text name="emails[]" placeholder="Email" value="%s"></p>', $user, $email );
 						}
 					?>
 				<?php endif; ?>
