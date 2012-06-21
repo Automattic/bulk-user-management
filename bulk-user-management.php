@@ -46,7 +46,7 @@ class Bulk_User_Management {
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_invite_users_form' ) );
 
-		add_filter('set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3);
+		add_filter( 'set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3 );
 	}
 
 	public function init() {
@@ -142,6 +142,12 @@ class Bulk_User_Management {
 								$messages[] = $message . ' (' . $email . ')';
 							}
 						}
+					}
+					break;
+				case 'invite_form_error':
+					if ( is_wp_error( $_POST[ 'error' ] ) ) {
+						$error = $_POST[ 'error' ];
+						$messages[] = $error->get_error_code();
 					}
 					break;
 			}
@@ -272,6 +278,19 @@ class Bulk_User_Management {
 			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
+		if ( empty( $_REQUEST[ 'blogs' ] ) ) {
+			$_GET[ 'update' ] = 'invite_form_error';
+			$_POST[ 'error' ] = new WP_Error( __( 'No blogs were specified.', 'bulk-user-management' ) );
+			return;
+		}
+
+		$emails = isset( $_REQUEST[ 'emails' ] ) ? array_filter( $_REQUEST[ 'emails' ] ) : false;
+		if ( empty( $emails ) ) {
+			$_GET[ 'update' ] = 'invite_form_error';
+			$_POST[ 'error' ] = new WP_Error( __( 'No users were specified.', 'bulk-user-management' ) );
+			return;
+		}
+
 		check_admin_referer( 'bulk-user-management-add-users', 'bulk-user-management-add-users' );
 
 		$blogids = array_map( 'intval', $_REQUEST['blogs'] );
@@ -281,11 +300,12 @@ class Bulk_User_Management {
 		$message = sanitize_text_field( $_REQUEST['message'] );
 		$noconfirmation =  ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() );
 
-		foreach ( $blogids as $blog )
+		foreach ( $blogids as $blog ) {
 			if ( ! current_user_can_for_blog( $blog, 'create_users') ) {
 				$error = new WP_Error( __( 'Cheatin&#8217; uh?', 'bulk-user-management' ) );
 				wp_die( $error->get_error_message() );
 			}
+		}
 
 		// Invite users
 		do_action('bulk_user_management_invite', $blogids, $emails, $users, $role, $message, $noconfirmation);
@@ -293,21 +313,39 @@ class Bulk_User_Management {
 
 	public function invite_users( $blogids, $emails, $usernames, $role, $message, $noconfirmation ) {
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
+
+		// TODO: add javascript username suggestion and auto fill email
+		$invites = array();
+		foreach ( $emails as $key => $email ) {
+			if ( $user = email_exists($email) ) {
+				unset( $emails[ $key ], $usernames[ $key ] );
+				$invites[] = $user;
+			}
+		}
+
+		foreach ( $invites as $userid ) {
+			foreach ( $blogids as $blogid ) {
+				add_user_to_blog( $$blogid, $userid, $role );
+			}
+		}
+
 		$errors = $this->create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation);
 
-			if ( isset( $errors ) ) {
-				$_GET['update'] = 'add_user_errors';
-				$_POST['errors'] = $errors;
+		if ( isset( $errors ) ) {
+			$_GET['update'] = 'add_user_errors';
+			$_POST['errors'] = $errors;
+			return;
+		} else {
+			if ( $noconfirmation || empty( $emails ) ) {
+				$args = array( 'update' => 'addnoconfirmation' );
 			} else {
-				if ( $noconfirmation ) {
-					$args = array( 'update' => 'addnoconfirmation' );
-				} else {
-					$args = array( 'update' => 'newuserconfimation' );
-				}
-				$redirect = add_query_arg( $args, $redirect );
-				wp_redirect( $redirect );
-				exit();
-			}		
+				$args = array( 'update' => 'newuserconfimation' );
+			}
+		}
+
+		$redirect = add_query_arg( $args, $redirect );
+		wp_redirect( $redirect );
+		exit();	
 	}
 
 	/**
@@ -353,9 +391,12 @@ class Bulk_User_Management {
 		if ( !empty( $meta[ 'add_to_blogs' ] ) ) {
 			$blogids = $meta[ 'add_to_blogs' ];
 			$role = $meta[ 'new_role' ];
+
 			remove_user_from_blog($userid, $current_site->blog_id); // remove user from main blog.
+
 			foreach( $blogids as $blog_id )
 				add_user_to_blog( $blog_id, $userid, $role );
+
 			update_user_meta( $userid, 'primary_blog', $blogids[0] );
 		}
 	}
