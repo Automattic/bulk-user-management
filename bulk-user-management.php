@@ -60,6 +60,7 @@ class Bulk_User_Management {
 	}
 
 	public function admin_init() {
+		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, $this->version );
 		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), $this->version );
 		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), $this->version );
 	}
@@ -108,6 +109,7 @@ class Bulk_User_Management {
 		$bulk_users_table = new Bulk_User_Table();
 		$bulk_users_table->prepare_items();
 		wp_enqueue_script('bulk-user-management-inline-edit');
+		wp_enqueue_style('bulk-user-management');
 
 		if ( isset( $_GET['update'] ) ) {
 			$messages = array();
@@ -213,12 +215,12 @@ class Bulk_User_Management {
 			<input type=hidden name=action value="adduser">
 
 			<div id="new-user-and-email" class="form-field">
-				<p class="row" style="display:none"><input style="width:47%" type=text name="usernames[]" placeholder="Username"> <input style="width:47%" type=text name="emails[]" placeholder="Email"></p>
+				<p class="row" style="display:none"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
 				<?php if ( empty( $_REQUEST[ 'emails' ] ) ): ?>
-					<p class="row"><input style="width:47%" type=text name="usernames[]" placeholder="Username"> <input style="width:47%" type=text name="emails[]" placeholder="Email"></p>
-					<p class="row"><input style="width:47%" type=text name="usernames[]" placeholder="Username"> <input style="width:47%" type=text name="emails[]" placeholder="Email"></p>
-					<p class="row"><input style="width:47%" type=text name="usernames[]" placeholder="Username"> <input style="width:47%" type=text name="emails[]" placeholder="Email"></p>
-					<p class="row"><input style="width:47%" type=text name="usernames[]" placeholder="Username"> <input style="width:47%" type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
+					<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
 				<?php else: ?>
 					<?php
 						foreach( $_REQUEST[ 'emails' ] as $key => $email ) {
@@ -226,7 +228,7 @@ class Bulk_User_Management {
 							$user = sanitize_user( $_REQUEST['usernames'][$key] );
 							if ( $email == "" && $user == "" )
 								continue;
-							printf( '<p class="row"><input style="width:47%%" type=text name="usernames[]" placeholder="Username" value="%s"> <input style="width:47%%" type=text name="emails[]" placeholder="Email" value="%s"></p>', $user, $email );
+							printf( '<p class="row"><input type=text name="usernames[]" placeholder="Username" value="%s"> <input type=text name="emails[]" placeholder="Email" value="%s"></p>', $user, $email );
 						}
 					?>
 				<?php endif; ?>
@@ -252,7 +254,7 @@ class Bulk_User_Management {
 					foreach ( $blogs as $id ) {
 						$blog = get_blog_details($id);
 						$checked = isset( $_POST['blogs'] ) && in_array( $id, $_POST['blogs'] ) ? 'checked' : '';
-						printf("<label class='selectit'><input style='width:auto' type=checkbox name=blogs[] value='%d'%s> %s</label>", intval($blog->blog_id), $checked, esc_attr($blog->blogname) );
+						printf("<label class='selectit'><input type=checkbox name=blogs[] value='%d'%s> %s</label>", intval($blog->blog_id), $checked, esc_attr($blog->blogname) );
 					}
 				?>
 				</fieldset>
@@ -270,7 +272,7 @@ class Bulk_User_Management {
 
 			<?php if ( is_super_admin() ): ?>
 			<div class="form-field">
-				<label><input style="width:auto" type=checkbox name="noconfirmation"<?php if ( isset( $_POST['noconfirmation'] ) ) echo "checked";?>> <?php _e( 'Skip Confirmation Email', 'bulk-user-management' ); ?></label>
+				<label><input type=checkbox name="noconfirmation"<?php if ( isset( $_POST['noconfirmation'] ) ) echo "checked";?>> <?php _e( 'Skip Confirmation Email', 'bulk-user-management' ); ?></label>
 			</div>
 			<?php endif; ?>
 			

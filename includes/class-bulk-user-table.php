@@ -196,7 +196,7 @@ class Bulk_User_Table extends WP_List_Table {
       </div>
     </div></fieldset>
 
-    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+    <fieldset class="inline-edit-col-right"><div class="inline-edit-col">
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
       <ul class="cat-checklist category-checklist">
@@ -207,7 +207,7 @@ class Bulk_User_Table extends WP_List_Table {
       </ul>
     </div></fieldset>
 
-    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+    <fieldset class="inline-edit-col-right"><div class="inline-edit-col">
       <label class="inline-edit-user">
         <span class="title"><?php _e( 'Role', 'bulk-user-management' ); ?></span>
         <select name="new_role" id="new_role-role">
@@ -252,7 +252,7 @@ class Bulk_User_Table extends WP_List_Table {
       </div>
     </div></fieldset>
 
-    <fieldset class="inline-edit-col-left"><div class="inline-edit-col">
+    <fieldset class="inline-edit-col-right"><div class="inline-edit-col">
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
       <ul class="cat-checklist category-checklist">

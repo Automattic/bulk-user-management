@@ -1,0 +1,4 @@
+#wpbody-content .inline-edit-row fieldset.inline-edit-col-right { width: 70%; }
+#new-user-and-email input { width: 47%; }
+h3 a.button { float: right; margin-right: 6%; }
+input[type=checkbox] { width: auto; }
