@@ -128,6 +128,9 @@ class Bulk_User_Management {
 				case 'err_admin_role':
 					$messages[] =  __( 'The new role of the current user must still be able to promote users.', 'bulk-user-management' );
 					break;
+				case 'user_email_pair':
+					$messages[] =  __( 'Each new user must have an email address specified.', 'bulk-user-management' );
+					break;
 				case 'add_user_errors':
 					foreach ( $_POST['errors'] as $email => $error ) {
 						$email = sanitize_email( $email );
@@ -299,15 +302,23 @@ class Bulk_User_Management {
 		}
 
 		$emails = isset( $_REQUEST[ 'emails' ] ) ? array_filter( $_REQUEST[ 'emails' ] ) : false;
-		if ( empty( $emails ) ) {
+		$users = isset( $_REQUEST[ 'usernames' ] ) ? array_filter( $_REQUEST[ 'usernames' ] ) : false;
+		if ( empty( $emails ) && empty( $users ) ) {
 			$_GET[ 'update' ] = 'invite_form_error';
 			$_POST[ 'error' ] = new WP_Error( __( 'No users were specified.', 'bulk-user-management' ) );
 			return;
 		}
 
-		foreach ( $emails as $email ) {
+		foreach ( $emails as $key => $email ) {
 			if ( ! is_email( $email ) ) {
 				$_GET[ 'update' ] = 'invalid_email';
+				return;
+			}
+		}
+
+		foreach ( $users as $key => $user ) {
+			if ( ! isset( $emails[ $key ] ) ) {
+				$_GET[ 'update' ] = 'user_email_pair';
 				return;
 			}
 		}
