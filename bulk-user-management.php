@@ -456,19 +456,15 @@ class Bulk_User_Management {
 		check_admin_referer( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' );
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
-		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$userids = array_map('intval', $_REQUEST['users']);
-		$role = sanitize_key($_REQUEST['new_role']);
-
-		if ( ! current_user_can( 'promote_users' ) ) {
-			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'bulk-user-management' ) );
-			wp_die( $error->get_error_message() );
-		}
-
 		if ( empty($_REQUEST['users']) ) {
 			wp_redirect($redirect);
 			exit();
 		}
+
+		$blogids = array_map('intval', $_REQUEST['blogs']);
+		$userids = array_map('intval', $_REQUEST['users']);
+		$role = sanitize_key($_REQUEST['new_role']);
+
 
 		$editable_roles = get_editable_roles();
 		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] ) {
