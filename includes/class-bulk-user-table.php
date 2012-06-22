@@ -104,14 +104,17 @@ class Bulk_User_Table extends WP_List_Table {
   // TODO: replace with blog stickers API
   function get_blog_ids() {
     $user_id = get_current_user_id();
-    $blogs = get_blogs_of_user($user_id, false);
+    $blogs = get_blogs_of_user( $user_id );
+    
+    $limit = array_map( 'intval', apply_filters( 'bulk_user_management_limit_blogs', array() ) );
+
     $blog_ids = array();
-    $limit = array_map( 'intval', apply_filters('bulk_user_management_limit_blogs', array()) );
     foreach ( $blogs as $blog ) {
-      $user = new WP_User($user_id, null, $blog->userblog_id);
-      if ( user_can( $user, 'list_users' ) && ( count($limit) == 0 || in_array($blog->userblog_id, $limit) ) )
+      $user = new WP_User( $user_id, null, $blog->userblog_id );
+      if ( user_can( $user, 'list_users' ) && ( count( $limit ) == 0 || in_array( $blog->userblog_id, $limit ) ) )
         $blog_ids[] = $blog->userblog_id;
     }
+
     return $blog_ids;
   }
 
