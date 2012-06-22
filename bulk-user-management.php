@@ -19,12 +19,7 @@ include('includes/class-bulk-user-table.php');
 
 class Bulk_User_Management {
 
-	public $settings               = array();
-	public $default_settings       = array();
-
 	private $version               = '1.0.0';
-
-	private $option_name           = 'bulk_user_management';
 	private $page_slug             = 'bulk_user_management';
 	private $parent_page           = 'index.php';
 	private $per_page              = 20;
@@ -50,11 +45,6 @@ class Bulk_User_Management {
 	}
 
 	public function init() {
-		$this->default_settings = array(
-			
-		);
-		$this->settings = wp_parse_args( (array) get_option( $this->option_name ), $this->default_settings );
-
 		// Allow the parent page to be filtered
 		$this->parent_page = apply_filters('bulk_user_management_parent_page', $this->parent_page);
 	}
