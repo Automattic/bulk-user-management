@@ -528,21 +528,27 @@ class Bulk_User_Management {
 		check_admin_referer( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' );
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
-		$blogids = array_map('intval', $_REQUEST['blogs']);
-		$userids = array_map('intval', $_REQUEST['users']);
-
-		if ( ! current_user_can( 'remove_users' ) ) {
-			$error = new WP_Error( 'no-promote-user-cap', __( 'You can&#8217;t edit that user.', 'bulk-user-management' ) );
-			wp_die( $error->get_error_message() );
-		}
-
 		if ( empty($_REQUEST['users']) ) {
 			wp_redirect($redirect);
 			exit();
 		}
+
+		$blogids = array_map('intval', $_REQUEST['blogs']);
+		$userids = array_map('intval', $_REQUEST['users']);
+
+		$errors = array();
+		foreach ( $blogids as $blogid ) {
+			if ( ! current_user_can_for_blog($blogid, 'remove_users') ) {
+				$error = new WP_Error( 'no-remove-user-cap', sprintf( __( 'You can&#8217;t remove users on that site.', 'bulk-user-management' ) ) );
+				// Just throw an error because that shouldn't have been possible
+				wp_die( $error->get_error_message() );
+			}
+		}
+
 		//TODO: handle case where user removes themself?
 
-		$this->remove_users($blogids, $userids);
+		if ( 'remove' == $update )
+			$this->remove_users($blogids, $userids);
 
 		wp_redirect( add_query_arg('update', $update, $redirect) );
 		exit();
