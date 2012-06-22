@@ -31,8 +31,8 @@ class Bulk_User_Management {
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
     	
-    	add_action( 'bulk_user_management_invite_form',     array( $this, 'invite_users_form' ) );
-    	add_action( 'bulk_user_management_invite',          array( $this, 'invite_users'), 5, 6 );
+    	add_action( 'bulk_user_management_invite_form',    array( $this, 'invite_users_form' ) );
+    	add_action( 'bulk_user_management_invite',         array( $this, 'invite_users'), 5, 6 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
@@ -82,6 +82,9 @@ class Bulk_User_Management {
 		if ( 'bulk_user_management_per_page' == $option ) return $value;
 	}
 
+	/**
+	 * Display a notice if it's not multisite
+	 */
 	public function multisite_notice() {
 		global $pagenow;
 		if ( !is_multisite() && current_user_can( 'install_plugins' ) && ( 'plugins.php' == $pagenow || $this->page_slug == $_GET['page'] ) ) {
@@ -275,7 +278,10 @@ class Bulk_User_Management {
 
 	/**
 	 * Validate and sanitize data from the add users form before creating
-	 * them and adding them to the correct blogs
+	 * them and adding them to the correct blogs. Return errors if no blogs
+	 * or email addresses were supplied (or if there were any invalid email
+	 * addresses). Then sanitize all the request variables and run the
+	 * `bulk_user_management_invite` action.
 	 */
 	public function handle_invite_users_form() {
 		global $wpdb;
@@ -324,6 +330,11 @@ class Bulk_User_Management {
 		do_action('bulk_user_management_invite', $blogids, $emails, $users, $role, $message, $noconfirmation);
 	}
 
+	/**
+	 * Hooked into `bulk_users_management_invite` action by default.
+	 * Checks for users that already exist on the network and adds them directly.
+	 * Sends a list of the rest to `create_users()`.
+	 */
 	public function invite_users( $blogids, $emails, $usernames, $role, $message, $noconfirmation ) {
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
@@ -362,7 +373,9 @@ class Bulk_User_Management {
 	}
 
 	/**
-	 * Create users, send notification emails, add entry to signups table
+	 * Validates username-email combinations and invites them with `wpmu_signup_user`.
+	 * If `$noconfirmation` is true, disable confirmation emails and manually activate
+	 * them in the `$wpdb->signups` table. Returns an array of errors if any exist.
 	 */
 	public function create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation) {
 		global $wpdb;
@@ -427,7 +440,10 @@ class Bulk_User_Management {
 
 	/**
 	 * Validate and sanitize data from the bulk edit form before
-	 * actually assigning new roles to users
+	 * actually assigning new roles to users. Check that the current user
+	 * can promote users on the target blogs and that their new role
+	 * can promote users if it is changing. Pass valid `$blogs`,
+	 * `$userids`, and `$role` to `promote_users()` if there were no errors.
 	 */
 	public function handle_promote_users_form() {
 		global $current_user, $wp_roles;
@@ -487,7 +503,7 @@ class Bulk_User_Management {
 	}
 
 	/**
-	 * Add/remote/modify role of specified users on specified sites
+	 * Change the role of all `$userids` on all `$blogids` to `$role`.
 	 */
 	public function promote_users($blogids = array(), $userids = array(), $role) {
 		foreach ( $userids as $id ) {
@@ -498,8 +514,9 @@ class Bulk_User_Management {
 	}
 
 	/**
-	 * Validate and sanitize a request to remove users, then
-	 * call `remove_users()` to actually remove the users
+	 * Validate and sanitize a request to remove users. Check
+	 * that the current user can remove users on all target sites.
+	 * Then call `remove_users()` to actually remove the users.
 	 */
 	public function handle_remove_users_form() {
 		$update = "remove";
@@ -523,6 +540,7 @@ class Bulk_User_Management {
 			wp_redirect($redirect);
 			exit();
 		}
+		//TODO: handle case where user removes themself?
 
 		$this->remove_users($blogids, $userids);
 
