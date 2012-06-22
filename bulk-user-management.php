@@ -239,18 +239,20 @@ class Bulk_User_Management {
 			</div>
 
 			<div class="form-field">
-				<?php _e( 'Sites', 'bulk-user-management' ); ?>
 				<fieldset>
-				<?php
-					$bulk_users_table = new Bulk_User_Table();
-					$blogs = $bulk_users_table->get_blog_ids();
+					<span><?php _e( 'Sites', 'bulk-user-management' ); ?></span>
+					<ul class="site-checklist">
+						<?php
+							$bulk_users_table = new Bulk_User_Table();
+							$blogs = $bulk_users_table->get_blog_ids();
 
-					foreach ( $blogs as $id ) {
-						$blog = get_blog_details($id);
-						$checked = isset( $_POST['blogs'] ) && in_array( $id, $_POST['blogs'] ) ? 'checked' : '';
-						printf("<label class='selectit'><input type=checkbox name=blogs[] value='%d'%s> %s</label>", intval($blog->blog_id), $checked, esc_attr($blog->blogname) );
-					}
-				?>
+							foreach ( $blogs as $id ) {
+								$blog = get_blog_details($id);
+								$checked = isset( $_POST['blogs'] ) && in_array( $id, $_POST['blogs'] ) ? 'checked' : '';
+								printf("<li><label class='selectit'><input type=checkbox name=blogs[] value='%d'%s> %s</label></li>", intval($blog->blog_id), $checked, esc_attr($blog->blogname) );
+							}
+						?>
+					</ul>
 				</fieldset>
 			</div>
 
