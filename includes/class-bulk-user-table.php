@@ -196,10 +196,10 @@ class Bulk_User_Table extends WP_List_Table {
       </div>
     </div></fieldset>
 
-    <fieldset class="inline-edit-col-right"><div class="inline-edit-col">
+    <fieldset class="inline-edit-col-middle"><div class="inline-edit-col">
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
-      <ul class="cat-checklist category-checklist">
+      <ul class="cat-checklist site-checklist">
         <?php foreach ( $this->get_blog_ids() as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
@@ -252,10 +252,10 @@ class Bulk_User_Table extends WP_List_Table {
       </div>
     </div></fieldset>
 
-    <fieldset class="inline-edit-col-right"><div class="inline-edit-col">
+    <fieldset class="inline-edit-col-right-wide"><div class="inline-edit-col">
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
-      <ul class="cat-checklist category-checklist">
+      <ul class="cat-checklist site-checklist">
         <?php foreach ( $this->get_blog_ids() as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
