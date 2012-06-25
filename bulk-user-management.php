@@ -104,18 +104,19 @@ class Bulk_User_Management {
 		wp_enqueue_script('bulk-user-management-inline-edit');
 		wp_enqueue_style('bulk-user-management');
 
+		$messages = array();
+		if ( isset( $_GET['addexisting'] ) ) {
+			$messages[] = __( 'Some users were already members of the specified sites.', 'bulk-user-management' );
+		}
+
 		if ( isset( $_GET['update'] ) ) {
-			$messages = array();
 			switch ( $_GET['update'] ) {
 				case "newuserconfimation":
 					$messages[] = __( 'Invitation email sent to new users. A confirmation link must be clicked before their account is created.', 'bulk-user-management' );
 					break;
 				case "addnoconfirmation":
 					$messages[] = __( 'Users have been added to your site.', 'bulk-user-management' );
-					break;
-				case "addexisting":
-					$messages[] = __( 'That user is already a member of this site.', 'bulk-user-management' );
-					break;
+					break;			
 				case "invalid_email":
 					$messages[] = __( 'Please enter a valid email address.', 'bulk-user-management' );
 					break;
@@ -349,7 +350,7 @@ class Bulk_User_Management {
 	 * Sends a list of the rest to `create_users()`.
 	 */
 	public function invite_users( $blogids, $emails, $usernames, $role, $message, $noconfirmation ) {
-		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
+		$total = count( $emails );
 
 		// TODO: add javascript username suggestion and auto fill email
 		$invites = array();
@@ -366,29 +367,35 @@ class Bulk_User_Management {
 			}
 		}
 
+		$addexisting = 0;
 		foreach ( $invites as $userid ) {
 			foreach ( $blogids as $blogid ) {
-				add_user_to_blog( $blogid, $userid, $role );
+				$user = new WP_User( $userid, null, $blogid );
+				if ( count( $user->role ) > 0 ) {
+					$addexisting++;
+				} else {
+					add_user_to_blog( $blogid, $userid, $role );
+				}
+				
 			}
 		}
 
 		$errors = $this->create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation);
 
+		if ( $addexisting > 0 )
+			$_GET[ 'addexisting' ] = $addexisting;
+
 		if ( isset( $errors ) ) {
 			$_GET['update'] = 'add_user_errors';
 			$_POST['errors'] = $errors;
 			return;
-		} else {
+		} elseif ( $total > $addexisting ) {
 			if ( $noconfirmation || empty( $emails ) ) {
-				$args = array( 'update' => 'addnoconfirmation' );
+				$_GET['update'] = 'addnoconfirmation';
 			} else {
-				$args = array( 'update' => 'newuserconfimation' );
+				$_GET['update'] = 'newuserconfimation';
 			}
 		}
-
-		$redirect = add_query_arg( $args, $redirect );
-		wp_redirect( $redirect );
-		exit();	
 	}
 
 	/**
