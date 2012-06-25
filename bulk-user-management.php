@@ -292,16 +292,19 @@ class Bulk_User_Management {
 	public function handle_invite_users_form() {
 		global $wpdb;
 
-		if ( !isset($_REQUEST['action']) || 'adduser' != $_REQUEST['action'] ||
-			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
+		// Verify we should be handling the invite users form
+		if ( !isset( $_REQUEST['action'], $_REQUEST['page'] ) || 'adduser' != $_REQUEST['action']
+			|| $this->page_slug != $_REQUEST['page'] )
 			return;
 
+		// Make sure there were blogs specified
 		if ( empty( $_REQUEST[ 'blogs' ] ) ) {
 			$_GET[ 'update' ] = 'invite_form_error';
 			$_POST[ 'error' ] = new WP_Error( __( 'No blogs were specified.', 'bulk-user-management' ) );
 			return;
 		}
 
+		// There should at least be one username or email specified
 		$emails = isset( $_REQUEST[ 'emails' ] ) ? array_filter( $_REQUEST[ 'emails' ] ) : false;
 		$users = isset( $_REQUEST[ 'usernames' ] ) ? array_filter( $_REQUEST[ 'usernames' ] ) : false;
 		if ( empty( $emails ) && empty( $users ) ) {
@@ -310,6 +313,7 @@ class Bulk_User_Management {
 			return;
 		}
 
+		// Make sure all the email addresses were valid
 		foreach ( $emails as $key => $email ) {
 			if ( ! is_email( $email ) ) {
 				$_GET[ 'update' ] = 'invalid_email';
@@ -317,6 +321,7 @@ class Bulk_User_Management {
 			}
 		}
 
+		// Each username should have a matching email address
 		foreach ( $users as $key => $user ) {
 			if ( ! isset( $emails[ $key ] ) ) {
 				$_GET[ 'update' ] = 'user_email_pair';
@@ -324,8 +329,10 @@ class Bulk_User_Management {
 			}
 		}
 
+		// Check the nonce
 		check_admin_referer( 'bulk-user-management-add-users', 'bulk-user-management-add-users' );
 
+		// Sanitize data
 		$blogids = array_map( 'intval', $_REQUEST['blogs'] );
 		$emails = array_filter( array_map( 'sanitize_email', $_REQUEST['emails'] ) );
 		$users = array_filter( array_map( 'sanitize_user', $_REQUEST['usernames'] ) );
@@ -333,6 +340,7 @@ class Bulk_User_Management {
 		$message = sanitize_text_field( $_REQUEST['message'] );
 		$noconfirmation =  ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() );
 
+		// Make sure the current user can create users on all target blogs
 		foreach ( $blogids as $blog ) {
 			if ( ! current_user_can_for_blog( $blog, 'create_users') ) {
 				$error = new WP_Error( __( 'Cheatin&#8217; uh?', 'bulk-user-management' ) );
@@ -354,12 +362,14 @@ class Bulk_User_Management {
 
 		// TODO: add javascript username suggestion and auto fill email
 		$invites = array();
+		// Directly add users if those emails already exist
 		foreach ( $emails as $key => $email ) {
 			if ( $user = email_exists( $email ) ) {
 				unset( $emails[ $key ], $usernames[ $key ] );
 				$invites[] = $user;
 			}
 		}
+		// Directly add users if those usernames already exist
 		foreach ( $usernames as $key => $user ) {
 			if ( $user = username_exists( $user ) ) {
 				unset( $emails[ $key ], $usernames[ $key ] );
@@ -380,11 +390,14 @@ class Bulk_User_Management {
 			}
 		}
 
+		// Create users that don't exist yet
 		$errors = $this->create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation);
 
+		// Return an error message if users were added when they already had access to that site
 		if ( $addexisting > 0 )
 			$_GET[ 'addexisting' ] = $addexisting;
 
+		// Return any errors that happened while creating users
 		if ( isset( $errors ) ) {
 			$_GET['update'] = 'add_user_errors';
 			$_POST['errors'] = $errors;
@@ -429,6 +442,7 @@ class Bulk_User_Management {
 			}
 		}
 
+		// Update list of emails and usernames
 		$_REQUEST[ 'emails' ] = $emails;
 		$_REQUEST[ 'usernames' ] = $usernames;
 
@@ -479,29 +493,35 @@ class Bulk_User_Management {
 		global $current_user, $wp_roles;
 		$update = "promote";
 
+		// Make sure we should be handling the promote users form
 		if ( !isset($_REQUEST['action']) || 'modify' != $_REQUEST['action'] ||
 			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
+		// Check the nonce
 		check_admin_referer( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' );
+
+		// Set up the base redirect
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
+		// List of users to edit can't be empty
 		if ( empty($_REQUEST['users']) ) {
 			wp_redirect($redirect);
 			exit();
 		}
 
+		// Sanitize data
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
 		$role = sanitize_key($_REQUEST['new_role']);
 
-
 		$editable_roles = get_editable_roles();
-		if ( empty( $editable_roles[$_REQUEST['new_role']] ) && 'none' != $_REQUEST['new_role'] ) {
+		if ( empty( $editable_roles[$_REQUEST['new_role'] ) ) {
 			$error = new WP_Error( 'no-editable-role', __( 'You can&#8217;t give users that role.', 'bulk-user-management' ) );
 			wp_die( $error->get_error_message() );
 		}
 
+		// Verify the current user can promote users on all target blgos
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
 			if ( ! current_user_can_for_blog($blogid, 'promote_user') ) {
@@ -547,21 +567,28 @@ class Bulk_User_Management {
 	public function handle_remove_users_form() {
 		$update = "remove";
 
+		// Check that we should be handling the remove users form
 		if ( !isset($_REQUEST['action']) || 'remove' != $_REQUEST['action'] ||
 			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
 			return;
 
+		// Check the nonce
 		check_admin_referer( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' );
+
+		// Set up the base redirect
 		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
 
+		// List of users can't be empty
 		if ( empty($_REQUEST['users']) ) {
 			wp_redirect($redirect);
 			exit();
 		}
 
+		// Sanitize data
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
 
+		// Check that the current user can remove users on all target blogs
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
 			if ( ! current_user_can_for_blog($blogid, 'remove_users') ) {
