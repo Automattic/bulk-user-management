@@ -368,7 +368,7 @@ class Bulk_User_Management {
 
 		foreach ( $invites as $userid ) {
 			foreach ( $blogids as $blogid ) {
-				add_user_to_blog( $$blogid, $userid, $role );
+				add_user_to_blog( $blogid, $userid, $role );
 			}
 		}
 
@@ -404,7 +404,7 @@ class Bulk_User_Management {
 		}
 
 		foreach ( $emails as $key => $email ) {
-			$username = $usernames[$key];
+			$username = $usernames[ $key ];
 
 			// Adding a new user to this blog
 			$user_details = wpmu_validate_user_signup( $username, $email );
@@ -412,6 +412,7 @@ class Bulk_User_Management {
 			if ( is_wp_error( $user_details[ 'errors' ] ) && !empty( $user_details[ 'errors' ]->errors ) ) {
 				$add_user_errors[$email] = $user_details[ 'errors' ];
 			} else {
+				unset( $emails[ $key ], $usernames[ $key ] );
 				$new_user_login = apply_filters('pre_user_login', sanitize_user(stripslashes($username), true));
 				wpmu_signup_user( $new_user_login, $email, array( 'add_to_blogs' => $blogids, 'new_role' => $role, 'message' => $message ) );
 				if ( $noconfirmation ) {
@@ -420,6 +421,9 @@ class Bulk_User_Management {
 				}
 			}
 		}
+
+		$_REQUEST[ 'emails' ] = $emails;
+		$_REQUEST[ 'usernames' ] = $usernames;
 
 		if ( isset( $add_user_errors ) ) {
 			return $add_user_errors;
