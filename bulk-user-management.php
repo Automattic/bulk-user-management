@@ -354,7 +354,13 @@ class Bulk_User_Management {
 		// TODO: add javascript username suggestion and auto fill email
 		$invites = array();
 		foreach ( $emails as $key => $email ) {
-			if ( $user = email_exists($email) ) {
+			if ( $user = email_exists( $email ) ) {
+				unset( $emails[ $key ], $usernames[ $key ] );
+				$invites[] = $user;
+			}
+		}
+		foreach ( $usernames as $key => $user ) {
+			if ( $user = username_exists( $user ) ) {
 				unset( $emails[ $key ], $usernames[ $key ] );
 				$invites[] = $user;
 			}
