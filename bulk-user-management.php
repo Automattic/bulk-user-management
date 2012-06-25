@@ -516,7 +516,7 @@ class Bulk_User_Management {
 		$role = sanitize_key($_REQUEST['new_role']);
 
 		$editable_roles = get_editable_roles();
-		if ( empty( $editable_roles[$_REQUEST['new_role'] ) ) {
+		if ( empty( $editable_roles[ $_REQUEST['new_role'] ] ) ) {
 			$error = new WP_Error( 'no-editable-role', __( 'You can&#8217;t give users that role.', 'bulk-user-management' ) );
 			wp_die( $error->get_error_message() );
 		}
