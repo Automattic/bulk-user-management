@@ -381,7 +381,7 @@ class Bulk_User_Management {
 		foreach ( $invites as $userid ) {
 			foreach ( $blogids as $blogid ) {
 				$user = new WP_User( $userid, null, $blogid );
-				if ( count( $user->role ) > 0 ) {
+				if ( count( $user->roles ) > 0 ) {
 					$addexisting++;
 				} else {
 					add_user_to_blog( $blogid, $userid, $role );
