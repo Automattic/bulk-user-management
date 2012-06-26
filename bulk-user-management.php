@@ -248,7 +248,7 @@ class Bulk_User_Management {
 					<ul class="site-checklist">
 						<?php
 							$bulk_users_table = new Bulk_User_Table();
-							$blogs = $bulk_users_table->get_blog_ids();
+							$blogs = $bulk_users_table->get_blog_ids( 'add_users' );
 
 							foreach ( $blogs as $id ) {
 								$blog = get_blog_details($id);
@@ -343,7 +343,7 @@ class Bulk_User_Management {
 		// Make sure the current user can create users on all target blogs
 		foreach ( $blogids as $blog ) {
 			if ( ! current_user_can_for_blog( $blog, 'create_users') ) {
-				$error = new WP_Error( __( 'Cheatin&#8217; uh?', 'bulk-user-management' ) );
+				$error = new WP_Error( __( "Cheatin' huh?", 'bulk-user-management' ) );
 				wp_die( $error->get_error_message() );
 			}
 		}
