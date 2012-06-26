@@ -10,6 +10,7 @@ Author:       Automattic
 Author URI:   
 License:      GPLv2 or later
 
+Network: true
 Text Domain:  bulk-user-management
 Domain Path:  /languages/
 
