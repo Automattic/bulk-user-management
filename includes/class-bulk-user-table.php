@@ -54,7 +54,7 @@ class Bulk_User_Table extends WP_List_Table {
 
   function column_sites($item){
     $blogs = get_blogs_of_user($item->ID);
-    $crossreference = $this->get_blog_ids();
+    $crossreference = $this->get_blog_ids( 'list_users' );
     $sites = '';
     foreach ( $blogs as $blog )
       if( in_array($blog->userblog_id, $crossreference) ) {
@@ -102,7 +102,7 @@ class Bulk_User_Table extends WP_List_Table {
   }
 
   // TODO: replace with blog stickers API
-  function get_blog_ids() {
+  function get_blog_ids( $cap ) {
     $user_id = get_current_user_id();
     $blogs = get_blogs_of_user( $user_id );
     
@@ -111,7 +111,7 @@ class Bulk_User_Table extends WP_List_Table {
     $blog_ids = array();
     foreach ( $blogs as $blog ) {
       $user = new WP_User( $user_id, null, $blog->userblog_id );
-      if ( user_can( $user, 'list_users' ) && ( count( $limit ) == 0 || in_array( $blog->userblog_id, $limit ) ) )
+      if ( user_can( $user, $cap ) && ( count( $limit ) == 0 || in_array( $blog->userblog_id, $limit ) ) )
         $blog_ids[] = $blog->userblog_id;
     }
 
@@ -139,7 +139,7 @@ class Bulk_User_Table extends WP_List_Table {
 
     $this->process_bulk_action();
 
-    $blog_ids = $this->get_blog_ids();
+    $blog_ids = $this->get_blog_ids( 'list_users' );
 
     $meta_query = array();
     $meta_query['relation'] = 'OR';
@@ -203,7 +203,7 @@ class Bulk_User_Table extends WP_List_Table {
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
       <ul class="cat-checklist site-checklist">
-        <?php foreach ( $this->get_blog_ids() as $id ): ?>
+        <?php foreach ( $this->get_blog_ids( 'promote_users' ) as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
         <?php endforeach; ?>
@@ -259,7 +259,7 @@ class Bulk_User_Table extends WP_List_Table {
       <span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
 
       <ul class="cat-checklist site-checklist">
-        <?php foreach ( $this->get_blog_ids() as $id ): ?>
+        <?php foreach ( $this->get_blog_ids( 'remove_users' ) as $id ): ?>
           <?php $blog = get_blog_details($id); ?>
           <li><label class="selectit"><input id='blog-<?php echo esc_attr($blog->blog_id); ?>' type=checkbox name=blogs[] value='<?php echo esc_attr($blog->blog_id); ?>'> <?php echo esc_html($blog->blogname); ?></label></li>
         <?php endforeach; ?>
