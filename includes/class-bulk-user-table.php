@@ -222,10 +222,9 @@ class Bulk_User_Table extends WP_List_Table {
     <p class="submit inline-edit-save">
       <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'bulk-user-management' ); ?></a>
       <?php submit_button( __( 'Update', 'bulk-user-management' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
-      <input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
-      <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
+      <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>">
       <span class="error" style="display:none"></span>
-      <br class="clear" />
+      <br class="clear">
     </p>
 
     </td></tr>
@@ -269,10 +268,9 @@ class Bulk_User_Table extends WP_List_Table {
     <p class="submit inline-edit-save">
       <a accesskey="c" href="#inline-edit" title="<?php esc_attr_e( 'Cancel' ); ?>" class="button-secondary cancel alignleft"><?php _e( 'Cancel', 'bulk-user-management' ); ?></a>
       <?php submit_button( __( 'Update', 'bulk-user-management' ), 'button-primary alignright', 'bulk_edit', false, array( 'accesskey' => 's' ) ); ?>
-      <input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
-      <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
+      <input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>">
       <span class="error" style="display:none"></span>
-      <br class="clear" />
+      <br class="clear">
     </p>
 
     </td></tr>
