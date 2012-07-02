@@ -381,8 +381,7 @@ class Bulk_User_Management {
 		$addexisting = 0;
 		foreach ( $invites as $userid ) {
 			foreach ( $blogids as $blogid ) {
-				$user = new WP_User( $userid, null, $blogid );
-				if ( count( $user->roles ) > 0 ) {
+				if ( is_user_member_of_blog( $userid, $blogid ) ) {
 					$addexisting++;
 				} else {
 					add_user_to_blog( $blogid, $userid, $role );
@@ -465,8 +464,10 @@ class Bulk_User_Management {
 
 			remove_user_from_blog($userid, $current_site->blog_id); // remove user from main blog.
 
-			foreach( $blogids as $blog_id )
+			foreach( $blogids as $blog_id ) {
 				add_user_to_blog( $blog_id, $userid, $role );
+				wp_cache_delete( $blog_id, 'bum_blog_users' );
+			}
 
 			update_user_meta( $userid, 'primary_blog', $blogids[0] );
 		}
@@ -503,7 +504,7 @@ class Bulk_User_Management {
 		check_admin_referer( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' );
 
 		// Set up the base redirect
-		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
+		$redirect = add_query_arg( 'page', $this->page_slug, $_SERVER['REQUEST_URI'] );
 
 		// List of users to edit can't be empty
 		if ( empty($_REQUEST['users']) ) {
@@ -555,7 +556,8 @@ class Bulk_User_Management {
 	public function promote_users($blogids = array(), $userids = array(), $role) {
 		foreach ( $userids as $id ) {
 			foreach ( $blogids as $blogid ) {
-				add_user_to_blog($blogid, $id, $role);					
+				add_user_to_blog( $blogid, $id, $role );
+				wp_cache_delete( $blogid, 'bum_blog_users' );			
 			}
 		}
 	}
@@ -577,7 +579,7 @@ class Bulk_User_Management {
 		check_admin_referer( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' );
 
 		// Set up the base redirect
-		$redirect = add_query_arg( 'page', $this->page_slug, $this->parent_page );
+		$redirect = add_query_arg( 'page', $this->page_slug, $_SERVER['REQUEST_URI'] );
 
 		// List of users can't be empty
 		if ( empty($_REQUEST['users']) ) {
@@ -614,7 +616,8 @@ class Bulk_User_Management {
 	public function remove_users($blogids = array(), $userids = array()) {
 		foreach ( $userids as $userid ) {
 			foreach ( $blogids as $blogid ) {
-				remove_user_from_blog($userid, $blogid);
+				remove_user_from_blog( $userid, $blogid );
+				wp_cache_delete( $blogid, 'bum_blog_users' );
 			}
 		}
 	}
