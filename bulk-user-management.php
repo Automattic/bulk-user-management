@@ -42,6 +42,7 @@ class Bulk_User_Management {
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_invite_users_form' ) );
 
+		add_action( 'wp_ajax_bulk_user_management_show_form', array( $this, 'show_users' ) );
 		add_filter( 'set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3 );
 	}
 
@@ -54,6 +55,12 @@ class Bulk_User_Management {
 		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, $this->version );
 		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), $this->version );
 		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), $this->version );
+?>
+		<script>
+			var images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
+		</script>
+<?php
+
 	}
 
 	public function register_menus() {
@@ -95,13 +102,20 @@ class Bulk_User_Management {
 		}
 	}
 
+	public function show_users() {
+		$bulk_users_table = new Bulk_User_Table();
+		$bulk_users_table->prepare_items();
+		$bulk_users_table->display();
+		exit();
+	}
+
 	/**
 	 * Generate the users page
 	 */
 	public function users_page() {
 
 		$bulk_users_table = new Bulk_User_Table();
-		$bulk_users_table->prepare_items();
+		//$bulk_users_table->prepare_items();
 		wp_enqueue_script('bulk-user-management-inline-edit');
 		wp_enqueue_style('bulk-user-management');
 
@@ -177,7 +191,8 @@ class Bulk_User_Management {
 							<?php $bulk_users_table->search_box( __( 'Search Users', 'bulk-user-management' ), 'user' ); ?>
 						</form>
 						<form action="" method="post">
-						<?php $bulk_users_table->display(); ?>
+							<div class="bulk-users-form"></div>
+						<?php //$bulk_users_table->display(); ?>
 						<?php
 							if ( $bulk_users_table->has_items() ) {
 								$bulk_users_table->inline_edit();

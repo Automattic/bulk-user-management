@@ -78,9 +78,9 @@ class Bulk_User_Table extends WP_List_Table {
 
   function get_sortable_columns() {
     $sortable_columns = array(
-      'username' => array( 'username', true ),
-      'name'     => array( 'name', false ),
-      'email'    => array( 'email', false )
+      'username' => array( 'username', '' == $_REQUEST['orderby'] || ( 'username' == $_REQUEST['orderby'] && 'desc' != $_REQUEST['order'] ) ),
+      'name'     => array( 'name', 'name' == $_REQUEST['orderby'] && 'asc' == $_REQUEST['order'] ),
+      'email'    => array( 'email', 'email' == $_REQUEST['orderby'] && 'asc' == $_REQUEST['order']  )
     );
     return $sortable_columns;
   }
@@ -122,11 +122,15 @@ class Bulk_User_Table extends WP_List_Table {
     global $wpdb, $usersearch;
     $screen = get_current_screen();
 
-    $per_page = $screen->get_option('per_page', 'option');
-    $per_page = get_user_meta( get_current_user_id(), $per_page, true ); 
-    if ( empty ( $per_page) || $per_page < 1 ) {
-      $per_page = $screen->get_option( 'per_page', 'default' );
-    }
+    //TODO: make this work again
+    // Fatal error: Call to a member function get_option() on a non-object in bulk-user-management/includes/class-bulk-user-table.php on line 126
+    
+    // $per_page = $screen->get_option('per_page', 'option');
+    // $per_page = get_user_meta( get_current_user_id(), $per_page, true ); 
+    // if ( empty ( $per_page) || $per_page < 1 ) {
+    //   $per_page = $screen->get_option( 'per_page', 'default' );
+    // }
+    $per_page = 20;
 
     $usersearch = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
 
@@ -190,6 +194,7 @@ class Bulk_User_Table extends WP_List_Table {
       "total_items" => count( $query ),
       "per_page" => $per_page,
     ) );
+
   }
 
   function has_items() {
