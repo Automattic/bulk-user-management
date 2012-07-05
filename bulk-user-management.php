@@ -20,10 +20,12 @@ include('includes/class-bulk-user-table.php');
 
 class Bulk_User_Management {
 
-	private $version               = '1.0.0';
-	private $page_slug             = 'bulk_user_management';
-	private $parent_page           = 'index.php';
-	private $per_page              = 20;
+	const VERSION        = '1.0.0';
+	const PAGE_SLUG      = 'bulk_user_management';
+	const PER_PAGE       = 20;
+
+	private $parent_page = 'index.php';
+	private $invite_page = 'user-new.php';
 
 	function __construct() {
 		add_action( 'init',                                array( $this, 'init' ) );
@@ -52,9 +54,9 @@ class Bulk_User_Management {
 	}
 
 	public function admin_init() {
-		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, $this->version );
-		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), $this->version );
-		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), $this->version );
+		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, self::VERSION );
+		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), self::VERSION );
+		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), self::VERSION );
 ?>
 		<script>
 			var images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
@@ -64,7 +66,7 @@ class Bulk_User_Management {
 	}
 
 	public function register_menus() {
-		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', $this->page_slug, array( $this, 'users_page' ) );
+		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
 		add_action( "load-$hook", array( $this, 'bulk_user_management_per_page' ) );
 	}
 
@@ -76,7 +78,7 @@ class Bulk_User_Management {
 
 		$args = array(
 			'label' => 'Users',
-			'default' => $this->per_page,
+			'default' => self::PER_PAGE,
 			'option' => 'bulk_user_management_per_page'
 		);
 
@@ -95,7 +97,7 @@ class Bulk_User_Management {
 	 */
 	public function multisite_notice() {
 		global $pagenow;
-		if ( !is_multisite() && current_user_can( 'install_plugins' ) && ( 'plugins.php' == $pagenow || $this->page_slug == $_GET['page'] ) ) {
+		if ( !is_multisite() && current_user_can( 'install_plugins' ) && ( 'plugins.php' == $pagenow || self::PAGE_SLUG == $_GET['page'] ) ) {
 			echo '<div class="error">
 			     <p>Please enable multisite to use the User Management plugin.</p>
 			 </div>';
@@ -512,14 +514,14 @@ class Bulk_User_Management {
 
 		// Make sure we should be handling the promote users form
 		if ( !isset($_REQUEST['action']) || 'modify' != $_REQUEST['action'] ||
-			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
+			!isset($_REQUEST['page']) || self::PAGE_SLUG != $_REQUEST['page'] )
 			return;
 
 		// Check the nonce
 		check_admin_referer( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' );
 
 		// Set up the base redirect
-		$redirect = add_query_arg( 'page', $this->page_slug, $_SERVER['REQUEST_URI'] );
+		$redirect = add_query_arg( 'page', self::PAGE_SLUG, $_SERVER['REQUEST_URI'] );
 
 		// List of users to edit can't be empty
 		if ( empty($_REQUEST['users']) ) {
@@ -587,14 +589,14 @@ class Bulk_User_Management {
 
 		// Check that we should be handling the remove users form
 		if ( !isset($_REQUEST['action']) || 'remove' != $_REQUEST['action'] ||
-			!isset($_REQUEST['page']) || $this->page_slug != $_REQUEST['page'] )
+			!isset($_REQUEST['page']) || self::PAGE_SLUG != $_REQUEST['page'] )
 			return;
 
 		// Check the nonce
 		check_admin_referer( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' );
 
 		// Set up the base redirect
-		$redirect = add_query_arg( 'page', $this->page_slug, $_SERVER['REQUEST_URI'] );
+		$redirect = add_query_arg( 'page', self::PAGE_SLUG, $_SERVER['REQUEST_URI'] );
 
 		// List of users can't be empty
 		if ( empty($_REQUEST['users']) ) {
