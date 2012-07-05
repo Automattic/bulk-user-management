@@ -12,7 +12,8 @@ class Bulk_User_Table extends WP_List_Table {
     //Set parent defaults
     parent::__construct( array(
       'singular'  => 'bulk_user',
-      'plural'    => 'bulk_users'
+      'plural'    => 'bulk_users',
+      'ajax'      => true
     ) );
   }
 
@@ -101,7 +102,6 @@ class Bulk_User_Table extends WP_List_Table {
     }
   }
 
-  // TODO: replace with blog stickers API
   function get_blog_ids( $cap ) {
     $user_id = get_current_user_id();
     $blogs = get_blogs_of_user( $user_id );
@@ -120,16 +120,7 @@ class Bulk_User_Table extends WP_List_Table {
 
   function prepare_items( $queryitems = true ) {
     global $wpdb;
-    $screen = get_current_screen();
 
-    //TODO: make this work again
-    // Fatal error: Call to a member function get_option() on a non-object in bulk-user-management/includes/class-bulk-user-table.php on line 126
-    
-    // $per_page = $screen->get_option('per_page', 'option');
-    // $per_page = get_user_meta( get_current_user_id(), $per_page, true ); 
-    // if ( empty ( $per_page) || $per_page < 1 ) {
-    //   $per_page = $screen->get_option( 'per_page', 'default' );
-    // }
     $per_page = 20;
 
     $paged = $this->get_pagenum();

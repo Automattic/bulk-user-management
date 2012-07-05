@@ -46,7 +46,6 @@ class Bulk_User_Management {
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 
 		add_action( 'wp_ajax_bulk_user_management_show_form', array( $this, 'show_users' ) );
-		add_filter( 'set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3 );
 	}
 
 	public function init() {
@@ -58,7 +57,6 @@ class Bulk_User_Management {
 	public function admin_init() {
 		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, self::VERSION );
 		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), self::VERSION );
-		wp_register_script( 'ajax-user-box', plugins_url('/js/ajax-user-box.js', __FILE__), array('jquery'), self::VERSION );
 ?>
 		<script>
 			var images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
@@ -68,30 +66,7 @@ class Bulk_User_Management {
 	}
 
 	public function register_menus() {
-		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
-		add_action( "load-$hook", array( $this, 'bulk_user_management_per_page' ) );
-	}
-
-	/**
-	 * Set up the screen option for the number of users per page
-	 */
-	public function bulk_user_management_per_page() {
-		$option = 'per_page';
-
-		$args = array(
-			'label' => 'Users',
-			'default' => self::PER_PAGE,
-			'option' => 'bulk_user_management_per_page'
-		);
-
-		add_screen_option( $option, $args );
-	}
-
-	/**
-	 * Save the screen option for users per page
-	 */
-	public function bulk_user_management_per_page_save($status, $option, $value) {
-		if ( 'bulk_user_management_per_page' == $option ) return $value;
+		add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
 	}
 
 	/**
