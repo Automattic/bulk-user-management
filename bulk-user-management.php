@@ -34,8 +34,6 @@ class Bulk_User_Management {
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
     	
-    	add_action( 'bulk_user_management_invite_form',    array( $this, 'invite_users_form' ) );
-    	add_action( 'bulk_user_management_invite',         array( $this, 'invite_users'), 5, 6 );
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
@@ -46,7 +44,6 @@ class Bulk_User_Management {
 		// Handle GET and POST requests
 		add_action( 'admin_init', array( $this, 'handle_promote_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
-		add_action( 'admin_init', array( $this, 'handle_invite_users_form' ) );
 
 		add_action( 'wp_ajax_bulk_user_management_show_form', array( $this, 'show_users' ) );
 		add_filter( 'set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3 );
@@ -55,6 +52,7 @@ class Bulk_User_Management {
 	public function init() {
 		// Allow the parent page to be filtered
 		$this->parent_page = apply_filters('bulk_user_management_parent_page', $this->parent_page);
+		$this->invite_page = apply_filters('bulk_user_management_invite_page', $this->invite_page);
 	}
 
 	public function admin_init() {
@@ -199,321 +197,27 @@ class Bulk_User_Management {
 				}
 			?>
 
-			<div class='col-container'>
+			<form>
+				<input type=hidden name=page value="bulk_user_management">
+				<p class="search-box">
+					<label class="screen-reader-text" for="user-search-input">Search Users:</label>
+					<input type="search" id="user-search-input" name="s" value="<?php if ( isset( $_REQUEST['s'] ) ) echo esc_attr( $_REQUEST['s'] ); ?>">
+					<input type="submit" name="" id="search-submit" class="button" value="Search Users">
+				</p>
+			</form>
+			<form action="" method="post">
+			<?php $bulk_users_table->display(); ?>
+			<?php
+				$bulk_users_table->inline_edit();
+				$bulk_users_table->bulk_remove();
+			?>
+			</form>
 
-				<div id='col-right'>
-					<div class='col-wrap'>
-						<form>
-							<input type=hidden name=page value="bulk_user_management">
-							<?php $bulk_users_table->search_box( __( 'Search Users', 'bulk-user-management' ), 'user' ); ?>
-						</form>
-						<form action="" method="post">
-							<div class="bulk-users-form"></div>
-						<?php //$bulk_users_table->display(); ?>
-						<?php
-							if ( $bulk_users_table->has_items() ) {
-								$bulk_users_table->inline_edit();
-								$bulk_users_table->bulk_remove();
-							}
-						?>
-						</form>
-					</div>
-				</div>
+			<p class="description">To add a user to your network, add them with the <a href="<?php echo admin_url( $this->invite_page ); ?>">invite form</a> and come back here to manage their access to all of your sites</p>
 
-				<div id='col-left'>
-					<div class='form-wrap'>
-						<h3>Add New User</h3>
-						<?php do_action('bulk_user_management_invite_form'); ?>
-					</div>
-				</div>
-
-			</div>
 		</div>
 
 <?php
-	}
-
-	/**
-	 * Generate the add users form
-	 */
-	public function invite_users_form() {
-		wp_enqueue_script('ajax-user-box');
-	?>
-
-		<form action="" method="post">
-			<?php wp_nonce_field( 'bulk-user-management-add-users', 'bulk-user-management-add-users' ) ?>
-			<input type=hidden name=action value="adduser">
-
-			<div id="new-user-and-email" class="form-field">
-				<p class="row" style="display:none"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>
-				<?php
-					$i=0;
-					if ( isset( $_REQUEST[ 'emails' ] ) ) {
-						foreach( $_REQUEST[ 'emails' ] as $key => $email ) {
-							$email = sanitize_email( $email );
-							$user = sanitize_user( $_REQUEST['usernames'][$key] );
-							if ( $email == "" && $user == "" ) continue;
-
-							$i++;
-							printf( '<p class="row"><input type=text name="usernames[]" placeholder="Username" value="%s"> <input type=text name="emails[]" placeholder="Email" value="%s"></p>', $user, $email );
-						}
-					}
-					for( $i=$i; $i<4; $i++ ) {
-						if ( isset( $emails[ $i ] ) || isset( $users[ $i ] ) ) continue;
-						echo '<p class="row"><input type=text name="usernames[]" placeholder="Username"> <input type=text name="emails[]" placeholder="Email"></p>';
-					}
-				?>
-			</div>
-
-			<div class="form-field">
-				<label for="adduser-role"><?php _e( 'Role', 'bulk-user-management' ); ?></label>
-				<select name="new_role" id="new_role-role">
-					<?php
-						$role = isset( $_POST['new_role'] ) ? esc_attr( $_POST['new_role'] ) : get_option('default_role');
-						wp_dropdown_roles( $role );
-					?>
-				</select>
-			</div>
-
-			<div class="form-field">
-				<fieldset>
-					<span><?php _e( 'Sites', 'bulk-user-management' ); ?></span>
-					<ul class="site-checklist">
-						<?php
-							$bulk_users_table = new Bulk_User_Table();
-							$blogs = $bulk_users_table->get_blog_ids( 'add_users' );
-
-							foreach ( $blogs as $id ) {
-								$blog = get_blog_details($id);
-								$checked = isset( $_POST['blogs'] ) && in_array( $id, $_POST['blogs'] ) ? 'checked' : '';
-								printf("<li><label class='selectit'><input type=checkbox name=blogs[] value='%d'%s> %s</label></li>", intval($blog->blog_id), $checked, esc_attr($blog->blogname) );
-							}
-						?>
-					</ul>
-				</fieldset>
-			</div>
-
-			<div class="form-field">
-				<label for="message"><?php _e( 'Message', 'bulk-user-management' ); ?></label>
-				<textarea id="message" name="message" rows=5 placeholder="Check out my blog!"><?php
-						if ( isset( $_POST['message']) ) {
-							echo esc_textarea( $_POST['message'] );
-						}
-					?></textarea>
-				<p>(Optional) You can enter a custom message of up to 500 characters that will be included in the invitation to the user(s).</p>
-			</div>
-
-			<?php if ( is_super_admin() ): ?>
-			<div class="form-field">
-				<label><input type=checkbox name="noconfirmation"<?php if ( isset( $_POST['noconfirmation'] ) ) echo "checked";?>> <?php _e( 'Skip Confirmation Email', 'bulk-user-management' ); ?></label>
-			</div>
-			<?php endif; ?>
-			
-			<?php submit_button( __( 'Add Users', 'bulk-user-management' ), 'primary', 'adduser', true ); ?>
-		</form>
-
-<?php
-	}
-
-	/**
-	 * Validate and sanitize data from the add users form before creating
-	 * them and adding them to the correct blogs. Return errors if no blogs
-	 * or email addresses were supplied (or if there were any invalid email
-	 * addresses). Then sanitize all the request variables and run the
-	 * `bulk_user_management_invite` action.
-	 */
-	public function handle_invite_users_form() {
-		global $wpdb;
-
-		// Verify we should be handling the invite users form
-		if ( !isset( $_REQUEST['action'], $_REQUEST['page'] ) || 'adduser' != $_REQUEST['action']
-			|| $this->page_slug != $_REQUEST['page'] )
-			return;
-
-		// Make sure there were blogs specified
-		if ( empty( $_REQUEST[ 'blogs' ] ) ) {
-			$_GET[ 'update' ] = 'invite_form_error';
-			$_POST[ 'error' ] = new WP_Error( __( 'No blogs were specified.', 'bulk-user-management' ) );
-			return;
-		}
-
-		// There should at least be one username or email specified
-		$emails = isset( $_REQUEST[ 'emails' ] ) ? array_filter( $_REQUEST[ 'emails' ] ) : false;
-		$users = isset( $_REQUEST[ 'usernames' ] ) ? array_filter( $_REQUEST[ 'usernames' ] ) : false;
-		if ( empty( $emails ) && empty( $users ) ) {
-			$_GET[ 'update' ] = 'invite_form_error';
-			$_POST[ 'error' ] = new WP_Error( __( 'No users were specified.', 'bulk-user-management' ) );
-			return;
-		}
-
-		// Make sure all the email addresses were valid
-		foreach ( $emails as $key => $email ) {
-			if ( ! is_email( $email ) ) {
-				$_GET[ 'update' ] = 'invalid_email';
-				return;
-			}
-		}
-
-		// Each username should have a matching email address
-		foreach ( $users as $key => $user ) {
-			if ( ! isset( $emails[ $key ] ) ) {
-				$_GET[ 'update' ] = 'user_email_pair';
-				return;
-			}
-		}
-
-		// Check the nonce
-		check_admin_referer( 'bulk-user-management-add-users', 'bulk-user-management-add-users' );
-
-		// Sanitize data
-		$blogids = array_map( 'intval', $_REQUEST['blogs'] );
-		$emails = array_filter( array_map( 'sanitize_email', $_REQUEST['emails'] ) );
-		$users = array_filter( array_map( 'sanitize_user', $_REQUEST['usernames'] ) );
-		$role = sanitize_key( $_REQUEST['new_role'] );
-		$message = sanitize_text_field( $_REQUEST['message'] );
-		$noconfirmation =  ( isset( $_POST[ 'noconfirmation' ] ) && is_super_admin() );
-
-		// Make sure the current user can create users on all target blogs
-		foreach ( $blogids as $blog ) {
-			if ( ! current_user_can_for_blog( $blog, 'create_users') ) {
-				$error = new WP_Error( __( "Cheatin' huh?", 'bulk-user-management' ) );
-				wp_die( $error->get_error_message() );
-			}
-		}
-
-		// Invite users
-		do_action('bulk_user_management_invite', $blogids, $emails, $users, $role, $message, $noconfirmation);
-	}
-
-	/**
-	 * Hooked into `bulk_users_management_invite` action by default.
-	 * Checks for users that already exist on the network and adds them directly.
-	 * Sends a list of the rest to `create_users()`.
-	 */
-	public function invite_users( $blogids, $emails, $usernames, $role, $message, $noconfirmation ) {
-		$total = count( $emails );
-
-		// TODO: add javascript username suggestion and auto fill email
-		$invites = array();
-		// Directly add users if those emails already exist
-		foreach ( $emails as $key => $email ) {
-			if ( $user = email_exists( $email ) ) {
-				unset( $emails[ $key ], $usernames[ $key ] );
-				$invites[] = $user;
-			}
-		}
-		// Directly add users if those usernames already exist
-		foreach ( $usernames as $key => $user ) {
-			if ( $user = username_exists( $user ) ) {
-				unset( $emails[ $key ], $usernames[ $key ] );
-				$invites[] = $user;
-			}
-		}
-
-		$addexisting = 0;
-		foreach ( $invites as $userid ) {
-			foreach ( $blogids as $blogid ) {
-				if ( is_user_member_of_blog( $userid, $blogid ) ) {
-					$addexisting++;
-				} else {
-					add_user_to_blog( $blogid, $userid, $role );
-				}
-				
-			}
-		}
-
-		// Create users that don't exist yet
-		$errors = $this->create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation);
-
-		// Return an error message if users were added when they already had access to that site
-		if ( $addexisting > 0 )
-			$_GET[ 'addexisting' ] = $addexisting;
-
-		// Return any errors that happened while creating users
-		if ( isset( $errors ) ) {
-			$_GET['update'] = 'add_user_errors';
-			$_POST['errors'] = $errors;
-			return;
-		} elseif ( $total > $addexisting ) {
-			if ( $noconfirmation || empty( $emails ) ) {
-				$_GET['update'] = 'addnoconfirmation';
-			} else {
-				$_GET['update'] = 'newuserconfimation';
-			}
-		}
-	}
-
-	/**
-	 * Validates username-email combinations and invites them with `wpmu_signup_user`.
-	 * If `$noconfirmation` is true, disable confirmation emails and manually activate
-	 * them in the `$wpdb->signups` table. Returns an array of errors if any exist.
-	 */
-	public function create_users($blogids, $emails, $usernames, $role, $message, $noconfirmation) {
-		global $wpdb;
-
-		if ( $noconfirmation ) {
-			add_filter( 'wpmu_signup_user_notification', '__return_false' ); // Disable confirmation email
-		}
-
-		foreach ( $emails as $key => $email ) {
-			$username = $usernames[ $key ];
-
-			// Adding a new user to this blog
-			$user_details = wpmu_validate_user_signup( $username, $email );
-			unset( $user_details[ 'errors' ]->errors[ 'user_email_used' ] );
-			if ( is_wp_error( $user_details[ 'errors' ] ) && !empty( $user_details[ 'errors' ]->errors ) ) {
-				$add_user_errors[$email] = $user_details[ 'errors' ];
-			} else {
-				unset( $emails[ $key ], $usernames[ $key ] );
-				$new_user_login = apply_filters('pre_user_login', sanitize_user(stripslashes($username), true));
-				wpmu_signup_user( $new_user_login, $email, array( 'add_to_blogs' => $blogids, 'new_role' => $role, 'message' => $message ) );
-				if ( $noconfirmation ) {
-					$key = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $email ) );
-					wpmu_activate_signup( $key );
-				}
-			}
-		}
-
-		// Update list of emails and usernames
-		$_REQUEST[ 'emails' ] = $emails;
-		$_REQUEST[ 'usernames' ] = $usernames;
-
-		if ( isset( $add_user_errors ) ) {
-			return $add_user_errors;
-		}
-			
-	}
-
-	/**
-	 * Add user to the blogs that were listed in the invitation process
-	 * after they activate their account
-	 */
-	public function add_to_blogs($userid, $password, $meta) {
-		global $current_site;
-		if ( !empty( $meta[ 'add_to_blogs' ] ) ) {
-			$blogids = $meta[ 'add_to_blogs' ];
-			$role = $meta[ 'new_role' ];
-
-			remove_user_from_blog($userid, $current_site->blog_id); // remove user from main blog.
-
-			foreach( $blogids as $blog_id ) {
-				add_user_to_blog( $blog_id, $userid, $role );
-				wp_cache_delete( $blog_id, 'bum_blog_users' );
-			}
-
-			update_user_meta( $userid, 'primary_blog', $blogids[0] );
-		}
-	}
-
-	/**
-	 * Optionally add a custom message to the end of the invitation
-	 */
-	public function invite_message($message, $user, $email, $key, $meta) {
-		$meta = unserialize($meta);
-		if ( !empty( $meta[ 'message' ] ) ) {
-			return $message . $meta[ 'message' ];
-		}
-		return $message;
 	}
 
 	/**
