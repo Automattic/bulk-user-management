@@ -39,7 +39,11 @@ class Bulk_User_Management {
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
-		//Handle GET and POST requests
+		// Invalidate cache when a user is added or removed from a site
+		add_action( 'add_user_to_blog',                    array( $this, 'invalidate_cache' ), 5, 3 );
+		add_action( 'remove_user_from_blog',               array( $this, 'invalidate_cache' ), 5, 2 );
+
+		// Handle GET and POST requests
 		add_action( 'admin_init', array( $this, 'handle_promote_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 		add_action( 'admin_init', array( $this, 'handle_invite_users_form' ) );
@@ -108,7 +112,18 @@ class Bulk_User_Management {
 		$bulk_users_table = new Bulk_User_Table();
 		$bulk_users_table->prepare_items();
 		$bulk_users_table->display();
+		if ( $bulk_users_table->has_items() ) {
+			$bulk_users_table->inline_edit();
+			$bulk_users_table->bulk_remove();
+		}
 		exit();
+	}
+
+	public function invalidate_cache( $u, $remove_blogid, $blogid = false ) {
+		if ( false === $blogid ) // remove_user_from_blog
+			wp_cache_delete( $remove_blogid, 'bum_blog_users' );
+		else // add_user_to_blog
+			wp_cache_delete( $blogid, 'bum_blog_users' );
 	}
 
 	/**
@@ -117,7 +132,7 @@ class Bulk_User_Management {
 	public function users_page() {
 
 		$bulk_users_table = new Bulk_User_Table();
-		//$bulk_users_table->prepare_items();
+		$bulk_users_table->prepare_items( false );
 		wp_enqueue_script('bulk-user-management-inline-edit');
 		wp_enqueue_style('bulk-user-management');
 
@@ -574,7 +589,6 @@ class Bulk_User_Management {
 		foreach ( $userids as $id ) {
 			foreach ( $blogids as $blogid ) {
 				add_user_to_blog( $blogid, $id, $role );
-				wp_cache_delete( $blogid, 'bum_blog_users' );			
 			}
 		}
 	}
@@ -634,7 +648,6 @@ class Bulk_User_Management {
 		foreach ( $userids as $userid ) {
 			foreach ( $blogids as $blogid ) {
 				remove_user_from_blog( $userid, $blogid );
-				wp_cache_delete( $blogid, 'bum_blog_users' );
 			}
 		}
 	}

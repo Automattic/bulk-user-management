@@ -4,13 +4,7 @@ inlineEditUser = {
 	init : function(){
 		var t = this, bulkRow = $('#bulk-edit');
 
-		$('.bulk-users-form').html("<img src='" + images + "/wpspin_light.gif'>");
 		t.showTable();
-
-		$('.widefat tbody tr').each(function(){
-			var id = $(this).find('th.check-column input[type="checkbox"]').val();
-			$(this).attr('id', 'inline_'+id);
-		});
 
 		// Submit bulk edit option
 		$('#doaction, #doaction2').click(function(e){
@@ -21,7 +15,6 @@ inlineEditUser = {
 				t.setBulk();
 			}
 			if ( $('select[name="'+n+'"]').val() == 'remove' ) {
-				console.log('removed');
 				e.preventDefault();
 				t.remove();
 			}
@@ -36,6 +29,8 @@ inlineEditUser = {
 
 	setBulk : function(){
 		var te = '', c = true;
+
+		console.log( $('#bulk-edit') );
 
 		$('#bulk-edit td').attr('colspan', $('.widefat:first thead th:visible').length);
 		$('table.widefat tbody').prepend( $('#bulk-edit') );
@@ -90,27 +85,33 @@ inlineEditUser = {
 		$(".inline-editor").hide();
 	},
 
-	showTable: function(paged, orderby, order, search) {
+	showTable: function() {
 		var t = this;
 
 		var data = {
 			action: 'bulk_user_management_show_form',
-			paged: paged || getParameterByName('paged'),
-			search: search || getParameterByName('search'),
-			orderby: orderby || getParameterByName('orderby'),
-			order: order || getParameterByName('order')
+			paged: getParameterByName('paged'),
+			s: getParameterByName('s'),
+			orderby: getParameterByName('orderby'),
+			order: getParameterByName('order')
 		};
 
-		$(".actions").prepend("<img src='" + images + "/wpspin_light.gif'>");
+		$(".actions").prepend("<img class='ajax-spinner' src='" + images + "/wpspin_light.gif'>");
 		$(".wp-list-table").animate({"opacity":".4"});
 
 		$.post(ajaxurl, data, function(response) {
-			$('.bulk-users-form').html(response);
-			$('a[href*="admin-ajax.php"]').click(function(){
+			$('.widefat tbody').html( $(response).find('#the-list').html() );
+			
+			$('.tablenav-pages').remove();
+			$('.tablenav br').before( $(response).find('.tablenav-pages').first() );
+
+			$('a.disabled').click(function() { return false; });
+			$('a[href*="admin-ajax.php"]').not('.disabled').click(function(){
 				var url = $(this).attr("href");
 				var paged = getParameterByName( 'paged', url ) || 1;
 				var orderby = getParameterByName( 'orderby', url ) || getParameterByName( 'orderby', window.location.search ) || false;
 				var order = getParameterByName( 'order', url ) || getParameterByName( 'order', window.location.search ) || false;
+				var search = getParameterByName( 's', url ) || false;
 				var queryString = "";
 
 				if ( paged != 1 )
@@ -122,14 +123,27 @@ inlineEditUser = {
 				if ( order )
 					queryString += "&order=" + order;
 
-				// Load the table with updated state
-				t.showTable(paged, orderby, order, search);
+				if ( search )
+					queryString += "&s=" + search;
 
-				// Update the URL without refreshing the page				
-				history.pushState("", "", "?page=bulk_user_management" + queryString);
-				
+				// Update the URL without refreshing the page if possible
+				if ( history && history.pushState )
+					history.pushState("", "", "?page=bulk_user_management" + queryString);
+				else
+					window.location = "?page=bulk_user_management" + queryString;
+
+				// Load the table with updated state
+				t.init();
+
 				return false;
 			});
+		}).success(function(){
+			$(".ajax-spinner").hide();
+			$(".wp-list-table").animate({"opacity":"1"});
+			$('.widefat tbody tr').each(function(){
+				var id = $(this).find('th.check-column input[type="checkbox"]').val();
+			$(this).attr('id', 'inline_'+id);
+		});
 		});
 	}
 };

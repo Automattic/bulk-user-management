@@ -78,9 +78,9 @@ class Bulk_User_Table extends WP_List_Table {
 
   function get_sortable_columns() {
     $sortable_columns = array(
-      'username' => array( 'username', '' == $_REQUEST['orderby'] || ( 'username' == $_REQUEST['orderby'] && 'desc' != $_REQUEST['order'] ) ),
-      'name'     => array( 'name', 'name' == $_REQUEST['orderby'] && 'asc' == $_REQUEST['order'] ),
-      'email'    => array( 'email', 'email' == $_REQUEST['orderby'] && 'asc' == $_REQUEST['order']  )
+      'username' => array( 'user_login', true ),
+      'name' => array( 'display_name', false ),
+      'email' => array( 'user_email', false )
     );
     return $sortable_columns;
   }
@@ -118,8 +118,8 @@ class Bulk_User_Table extends WP_List_Table {
     return $blog_ids;
   }
 
-  function prepare_items() {
-    global $wpdb, $usersearch;
+  function prepare_items( $queryitems = true ) {
+    global $wpdb;
     $screen = get_current_screen();
 
     //TODO: make this work again
@@ -132,8 +132,6 @@ class Bulk_User_Table extends WP_List_Table {
     // }
     $per_page = 20;
 
-    $usersearch = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
-
     $paged = $this->get_pagenum();
 
     $columns = $this->get_columns();
@@ -143,57 +141,69 @@ class Bulk_User_Table extends WP_List_Table {
 
     $this->process_bulk_action();
 
-    $blog_ids = $this->get_blog_ids( 'list_users' );
+    if ( $queryitems ) {
 
-    $query = array();
-    foreach ( $blog_ids as $blogid ) {
+      $blog_ids = $this->get_blog_ids( 'list_users' );
 
-      $args = array(
-        'blog_id' => $blogid,
-        'search'  => $usersearch,
-      );
+      $query = array();
+      foreach ( $blog_ids as $blogid ) {
 
-      if ( '' !== $args['search'] )
-        $args['search'] = '*' . $args['search'] . '*';
+        $args = array(
+          'blog_id' => $blogid
+        );
 
-      $users = wp_cache_get( $blogid, 'bum_blog_users' );
-      if ( false === $users ) {
-        $users = get_users( $args );
-        wp_cache_set( $blogid, $users, 'bum_blog_users', 60 * 60 * 24 );
+        $users = wp_cache_get( $blogid, 'bum_blog_users' );
+        if ( false === $users ) {
+          $users = get_users( $args );
+          wp_cache_set( $blogid, $users, 'bum_blog_users', 60 * 60 * 24 );
+        }
+
+        foreach ( $users as $user ) {
+          if ( !in_array( $user, $query ) )
+            $query[] = $user;
+        }
       }
 
-      foreach ( $users as $user ) {
-        if ( !in_array( $user, $query ) )
-          $query[] = $user;
+      // orderby and order
+      usort( $query, function( $a, $b ){
+        $orderby = isset( $_REQUEST['orderby'] ) ? esc_attr( $_REQUEST['orderby'] ) : 'user_login';
+        $order = isset( $_REQUEST['order'] ) && 'desc' == $_REQUEST['order'] ? -1 : 1;
+
+        switch ( $orderby ) {
+          case 'display_name':
+            $cmp = strnatcmp( strtolower( $a->display_name ), strtolower( $b->display_name ) );
+            break;
+          case 'user_email':
+            $cmp = strnatcmp( strtolower( $a->user_email ), strtolower( $b->user_email ) );
+            break;
+          case 'user_login':
+          default:
+            $cmp = strnatcmp( strtolower( $a->user_login ), strtolower( $b->user_login ) );
+            break;
+        }
+
+        return $cmp * $order;
+      });
+
+      // search
+      $users = array();
+      if ( isset( $_REQUEST['s'] ) && '' != $_REQUEST['s'] ) {
+        foreach ( $query as $user ) {
+          if ( stristr( $user->user_login, $_REQUEST['s'] ) )
+            $users[] = $user;
+        }
+      } else {
+        $users = $query;
       }
+
+      $this->items = array_slice( $users, $per_page * ($paged-1), $per_page);
+
+      $this->set_pagination_args( array(
+        "total_items" => count( $query ),
+        "per_page" => $per_page,
+      ) );
+
     }
-
-    usort( $query, function( $a, $b ){
-      $orderby = isset( $_REQUEST['orderby'] ) ? esc_attr( $_REQUEST['orderby'] ) : 'username';
-      $order = isset( $_REQUEST['order'] ) && 'desc' == $_REQUEST['order'] ? -1 : 1;
-
-      switch ( $orderby ) {
-        case 'name':
-          $cmp = strnatcmp( strtolower( $a->display_name ), strtolower( $b->display_name ) );
-          break;
-        case 'email':
-          $cmp = strnatcmp( strtolower( $a->user_email ), strtolower( $b->user_email ) );
-          break;
-        case 'username':
-        default:
-          $cmp = strnatcmp( strtolower( $a->user_login ), strtolower( $b->user_login ) );
-          break;
-      }
-
-      return $cmp * $order;
-    });
-
-    $this->items = array_slice( $query, $per_page * ($paged-1), $per_page);
-
-    $this->set_pagination_args( array(
-      "total_items" => count( $query ),
-      "per_page" => $per_page,
-    ) );
 
   }
 
