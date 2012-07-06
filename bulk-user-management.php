@@ -64,6 +64,9 @@ class Bulk_User_Management {
 	public function enqueue_scripts() {
 		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, self::VERSION );
 		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), self::VERSION );
+		
+		wp_enqueue_script('bulk-user-management-inline-edit');
+		wp_enqueue_style('bulk-user-management');
 	}
 
 	public function register_menus() {
@@ -107,8 +110,6 @@ class Bulk_User_Management {
 
 		$bulk_users_table = new Bulk_User_Table();
 		$bulk_users_table->prepare_items( false );
-		wp_enqueue_script('bulk-user-management-inline-edit');
-		wp_enqueue_style('bulk-user-management');
 
 		$messages = array();
 		if ( isset( $_GET['addexisting'] ) ) {
