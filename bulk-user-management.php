@@ -30,10 +30,10 @@ class Bulk_User_Management {
 	function __construct() {
 		add_action( 'init',                                array( $this, 'init' ) );
 		add_action( 'admin_init',                          array( $this, 'admin_init' ) );
-    
+
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
-    	
+			
 		add_action( 'wpmu_activate_user',                  array( $this, 'add_to_blogs' ), 5, 3 );
 		add_action( 'wpmu_signup_user_notification_email', array( $this, 'invite_message' ), 5, 5 );
 
@@ -76,8 +76,8 @@ class Bulk_User_Management {
 		global $pagenow;
 		if ( !is_multisite() && current_user_can( 'install_plugins' ) && ( 'plugins.php' == $pagenow || self::PAGE_SLUG == $_GET['page'] ) ) {
 			echo '<div class="error">
-			     <p>Please enable multisite to use the User Management plugin.</p>
-			 </div>';
+				<p>Please enable multisite to use the User Management plugin.</p>
+			</div>';
 		}
 	}
 
@@ -132,10 +132,10 @@ class Bulk_User_Management {
 					$messages[] = __( 'Users were removed.', 'bulk-user-management' );
 					break;
 				case 'err_admin_role':
-					$messages[] =  __( 'The new role of the current user must still be able to promote users.', 'bulk-user-management' );
+					$messages[] = __( 'The new role of the current user must still be able to promote users.', 'bulk-user-management' );
 					break;
 				case 'user_email_pair':
-					$messages[] =  __( 'Each new user must have an email address specified.', 'bulk-user-management' );
+					$messages[] = __( 'Each new user must have an email address specified.', 'bulk-user-management' );
 					break;
 				case 'add_user_errors':
 					foreach ( $_POST['errors'] as $email => $error ) {
