@@ -30,6 +30,7 @@ class Bulk_User_Management {
 	function __construct() {
 		add_action( 'init',                                array( $this, 'init' ) );
 		add_action( 'admin_init',                          array( $this, 'admin_init' ) );
+		add_action( 'admin_enqueue_scripts',               array( $this, 'enqueue_scripts' ) );
 
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
 		add_action( 'admin_notices',                       array( $this, 'multisite_notice') );
@@ -54,15 +55,15 @@ class Bulk_User_Management {
 		$this->invite_page = apply_filters('bulk_user_management_invite_page', $this->invite_page);
 	}
 
-	public function admin_init() {
-		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, self::VERSION );
-		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), self::VERSION );
-?>
+	public function admin_init() { ?>
 		<script>
 			var bulk_user_management_images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
 		</script>
-<?php
+<?php }
 
+	public function enqueue_scripts() {
+		wp_register_style( 'bulk-user-management', plugins_url('/css/bulk-user-management.css', __FILE__), false, self::VERSION );
+		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), self::VERSION );
 	}
 
 	public function register_menus() {
