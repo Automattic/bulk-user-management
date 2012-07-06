@@ -34,7 +34,7 @@ class Bulk_User_Table extends WP_List_Table {
 		if ( get_current_user_id() == $item->ID ) {
 			$actions['edit'] = '<a href="' . admin_url('profile.php') . '">Edit</a>';
 		} elseif ( current_user_can('edit_users') ) {
-			$actions['edit'] = '<a href="' . add_query_arg( 'user_id', $item->ID, admin_url('user-edit.php') ) . '">Edit</a>';
+			$actions['edit'] = '<a href="' . add_query_arg( 'user_id', intval( $item->ID ), admin_url('user-edit.php') ) . '">Edit</a>';
 		}
 
 		$login = esc_attr( $item->user_login );
