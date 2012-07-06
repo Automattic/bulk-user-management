@@ -141,6 +141,7 @@ class Bulk_User_Management {
 					foreach ( $_POST['errors'] as $email => $error ) {
 						$email = sanitize_email( $email );
 						if ( is_wp_error( $error ) ) {
+							// It's an error, we're safe
 							$error_messages = $error->get_error_messages();
 							foreach ( $error_messages as $message ) {
 								$messages[] = $message . ' (' . $email . ')';
@@ -150,6 +151,7 @@ class Bulk_User_Management {
 					break;
 				case 'invite_form_error':
 					if ( is_wp_error( $_POST[ 'error' ] ) ) {
+						// It's an error, we're safe
 						$error = $_POST[ 'error' ];
 						$messages[] = $error->get_error_code();
 					}
@@ -229,7 +231,7 @@ class Bulk_User_Management {
 		$role = sanitize_key($_REQUEST['new_role']);
 
 		$editable_roles = get_editable_roles();
-		if ( empty( $editable_roles[ $_REQUEST['new_role'] ] ) ) {
+		if ( empty( $editable_roles[ $role ] ) ) {
 			$error = new WP_Error( 'no-editable-role', __( 'You can&#8217;t give users that role.', 'bulk-user-management' ) );
 			wp_die( $error->get_error_message() );
 		}

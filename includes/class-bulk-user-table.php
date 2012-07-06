@@ -25,7 +25,7 @@ class Bulk_User_Table extends WP_List_Table {
 		return sprintf(
 			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
 			/*$1%s*/ $this->_args['singular'],
-			/*$2%s*/ $item->ID
+			/*$2%s*/ intval( $item->ID )
 		);
 	}
 
@@ -37,7 +37,8 @@ class Bulk_User_Table extends WP_List_Table {
 			$actions['edit'] = '<a href="' . add_query_arg( 'user_id', $item->ID, admin_url('user-edit.php') ) . '">Edit</a>';
 		}
 
-		$login = is_super_admin( $item->ID ) ? $item->user_login . " - <strong>Super Admin</strong>" : $item->user_login;
+		$login = esc_attr( $item->user_login );
+		$login = is_super_admin( $item->ID ) ? $login . " - <strong>Super Admin</strong>" : $login;
 		return sprintf( __('%1$s %2$s %3$s', 'bulk-user-management' ),
 			/*$1%s*/ get_avatar($item->ID, 32),
 			/*$2%s*/ $login,
@@ -50,18 +51,18 @@ class Bulk_User_Table extends WP_List_Table {
 	}
 
 	function column_email($item){
-		return sprintf( __( '<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>', 'bulk-user-management' ), $item->user_email );
+		return sprintf( __( '<a href="mailto:%1$s" title="E-mail %1$s">%1$s</a>', 'bulk-user-management' ), esc_attr( $item->user_email ) );
 	}
 
 	function column_sites($item){
-		$blogs = get_blogs_of_user($item->ID);
+		$blogs = get_blogs_of_user( $item->ID );
 		$crossreference = $this->get_blog_ids( 'list_users' );
 		$sites = '';
 		foreach ( $blogs as $blog )
-			if( in_array($blog->userblog_id, $crossreference) ) {
+			if( in_array( $blog->userblog_id, $crossreference ) ) {
 				$user = new WP_User( $item->ID, null, $blog->userblog_id );
 				$domain = ( '/' == $blog->path ) ? $blog->domain : $blog->domain . $blog->path;
-				$sites .= sprintf( '<a href="%s">%s</a> - %s<br>', esc_attr( $blog->siteurl ), $domain, implode( ', ', $user->roles ) );
+				$sites .= sprintf( '<a href="%s">%s</a> - %s<br>', esc_url( $blog->siteurl ), esc_url( $domain ), esc_html( implode( ', ', $user->roles ) ) );
 			} 
 		return $sites;
 	}
@@ -147,9 +148,12 @@ class Bulk_User_Table extends WP_List_Table {
 
 			// orderby and order
 			usort( $query, function( $a, $b ){
-				$orderby = isset( $_REQUEST['orderby'] ) ? esc_attr( $_REQUEST['orderby'] ) : 'user_login';
+				
+				// Set $order to 1 or -1
 				$order = isset( $_REQUEST['order'] ) && 'desc' == $_REQUEST['order'] ? -1 : 1;
 
+				// Only accept 3 options for $orderby
+				$orderby = isset( $_REQUEST['orderby'] ) ? esc_attr( $_REQUEST['orderby'] ) : 'user_login';
 				switch ( $orderby ) {
 					case 'display_name':
 						$cmp = strnatcmp( strtolower( $a->display_name ), strtolower( $b->display_name ) );
@@ -163,14 +167,16 @@ class Bulk_User_Table extends WP_List_Table {
 						break;
 				}
 
+				// Multiply the comparison by -1 if we want to sort DESC
 				return $cmp * $order;
 			});
 
 			// search
 			$users = array();
-			if ( isset( $_REQUEST['s'] ) && '' != $_REQUEST['s'] ) {
+			$search = sanitize_text_field( $_REQUEST['s'] );
+			if ( isset( $_REQUEST['s'] ) && '' != $search ) {
 				foreach ( $query as $user ) {
-					if ( stristr( $user->user_login, $_REQUEST['s'] ) )
+					if ( stristr( $user->user_login, $search ) )
 						$users[] = $user;
 				}
 			} else {
@@ -189,10 +195,10 @@ class Bulk_User_Table extends WP_List_Table {
 	}
 
 	function has_items() {
-		return count($this->items) > 0;
+		return count( $this->items ) > 0;
 	}
 
-/**
+	/**
 	 * Outputs the hidden row displayed when inline editing
 	 */
 	function inline_edit() {
