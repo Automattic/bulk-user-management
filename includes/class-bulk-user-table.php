@@ -94,14 +94,6 @@ class Bulk_User_Table extends WP_List_Table {
     return $actions;
   }
 
-  function process_bulk_action() {
-    switch( $this->current_action() ) {
-      // case 'modify':
-      //   wp_die( __("Modify Bulk Action"), 'bulk-user-management' );
-      //   break;
-    }
-  }
-
   function get_blog_ids( $cap ) {
     $user_id = get_current_user_id();
     $blogs = get_blogs_of_user( $user_id );
@@ -129,8 +121,6 @@ class Bulk_User_Table extends WP_List_Table {
     $hidden = array();
     $sortable = $this->get_sortable_columns();
     $this->_column_headers = array($columns, $hidden, $sortable);
-
-    $this->process_bulk_action();
 
     if ( $queryitems ) {
 
