@@ -90,6 +90,7 @@ inlineEditUser = {
 
 		var data = {
 			action: 'bulk_user_management_show_form',
+			per_page: $('#bulk_user_management_per_page').val(),
 			paged: getParameterByName('paged'),
 			s: getParameterByName('s'),
 			orderby: getParameterByName('orderby'),

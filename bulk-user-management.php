@@ -47,6 +47,7 @@ class Bulk_User_Management {
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 
 		add_action( 'wp_ajax_bulk_user_management_show_form', array( $this, 'show_users' ) );
+		add_filter('set-screen-option', array( $this, 'bulk_user_management_per_page_save' ), 10, 3);
 	}
 
 	public function init() {
@@ -70,7 +71,26 @@ class Bulk_User_Management {
 	}
 
 	public function register_menus() {
-		add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
+		$hook = add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
+		add_action( "load-$hook", array( $this, 'bulk_user_management_per_page' ) );
+	}
+
+	public function bulk_user_management_per_page() {
+ 
+		$option = 'per_page';
+		 
+		$args = array(
+			'label' => 'Users',
+			'default' => self::PER_PAGE,
+			'option' => 'bulk_user_management_per_page'
+		);
+		 
+		add_screen_option( $option, $args );
+		 
+	}
+
+	public function bulk_user_management_per_page_save( $status, $option, $value ) {
+		if ( 'bulk_user_management_per_page' == $option ) return $value;
 	}
 
 	/**
