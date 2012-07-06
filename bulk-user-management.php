@@ -222,7 +222,7 @@ class Bulk_User_Management {
 
 		// List of users to edit can't be empty
 		if ( empty($_REQUEST['users']) ) {
-			wp_redirect($redirect);
+			wp_safe_redirect($redirect);
 			exit();
 		}
 
@@ -260,7 +260,7 @@ class Bulk_User_Management {
 		if ( 'promote' == $update )
 			$this->promote_users($blogids, $userids, $role);
 
-		wp_redirect( add_query_arg('update', $update, $redirect) );
+		wp_safe_redirect( add_query_arg('update', $update, $redirect) );
 		exit();
 	}
 
@@ -296,7 +296,7 @@ class Bulk_User_Management {
 
 		// List of users can't be empty
 		if ( empty($_REQUEST['users']) ) {
-			wp_redirect($redirect);
+			wp_safe_redirect($redirect);
 			exit();
 		}
 
@@ -319,7 +319,7 @@ class Bulk_User_Management {
 		if ( 'remove' == $update )
 			$this->remove_users($blogids, $userids);
 
-		wp_redirect( add_query_arg('update', $update, $redirect) );
+		wp_safe_redirect( add_query_arg('update', $update, $redirect) );
 		exit();
 	}
 
