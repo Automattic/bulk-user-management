@@ -153,7 +153,7 @@ class Bulk_User_Table extends WP_List_Table {
 				$order = isset( $_REQUEST['order'] ) && 'desc' == $_REQUEST['order'] ? -1 : 1;
 
 				// Only accept 3 options for $orderby
-				$orderby = isset( $_REQUEST['orderby'] ) ? esc_attr( $_REQUEST['orderby'] ) : 'user_login';
+				$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( $_REQUEST['orderby'] ) : 'user_login';
 				switch ( $orderby ) {
 					case 'display_name':
 						$cmp = strnatcmp( strtolower( $a->display_name ), strtolower( $b->display_name ) );
