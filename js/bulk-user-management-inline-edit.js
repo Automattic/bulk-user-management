@@ -96,7 +96,7 @@ inlineEditUser = {
 			order: getParameterByName('order')
 		};
 
-		$(".actions").prepend("<img class='ajax-spinner' src='" + images + "/wpspin_light.gif'>");
+		$(".actions").prepend("<img class='ajax-spinner' src='" + bulk_user_management_images + "/wpspin_light.gif'>");
 		$(".wp-list-table").animate({"opacity":".4"});
 
 		$.post(ajaxurl, data, function(response) {

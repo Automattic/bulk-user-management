@@ -59,7 +59,7 @@ class Bulk_User_Management {
 		wp_register_script( 'bulk-user-management-inline-edit', plugins_url('/js/bulk-user-management-inline-edit.js', __FILE__), array('jquery'), self::VERSION );
 ?>
 		<script>
-			var images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
+			var bulk_user_management_images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
 		</script>
 <?php
 
