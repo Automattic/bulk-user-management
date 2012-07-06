@@ -47,7 +47,7 @@ class Bulk_User_Table extends WP_List_Table {
 	}
 
 	function column_name($item){
-		return $item->display_name;
+		return esc_attr( $item->display_name );
 	}
 
 	function column_email($item){
