@@ -72,7 +72,8 @@ class Bulk_User_Management {
 	}
 
 	public function register_menus() {
-		add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
+		if ( $this->current_user_can_bulk_edit() )
+			add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
 	}
 
 	/**
@@ -335,6 +336,17 @@ class Bulk_User_Management {
 				remove_user_from_blog( $userid, $blogid );
 			}
 		}
+	}
+
+	public static function current_user_can_bulk_edit() {
+		if ( is_super_admin() )
+			return true;
+
+		$admins = array_map( 'intval', apply_filters( 'bulk_user_management_admin_users', array() ) );
+		if ( in_array( get_current_user_id(), $admins ) )
+			return true;
+
+		return false;
 	}
 }
 
