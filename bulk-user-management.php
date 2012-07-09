@@ -241,10 +241,10 @@ class Bulk_User_Management {
 			wp_die( $error->get_error_message() );
 		}
 
-		// Verify the current user can promote users on all target blgos
+		// Verify the current user can promote users on all target blogs
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
-			if ( ! current_user_can_for_blog($blogid, 'promote_user') ) {
+			if ( ! ( $this->current_user_can_bulk_edit() && in_array( $blogid, Bulk_User_Table::get_blog_ids( 'promote_user' ) ) ) && ! current_user_can_for_blog( $blogid, 'promote_user' ) ) {
 				$error = new WP_Error( 'no-promote-user-cap', sprintf( __( 'You can&#8217;t edit users on that site.', 'bulk-user-management' ) ) );
 				// Just throw an error because that shouldn't have been possible
 				wp_die( $error->get_error_message() );
@@ -311,7 +311,7 @@ class Bulk_User_Management {
 		// Check that the current user can remove users on all target blogs
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
-			if ( ! current_user_can_for_blog($blogid, 'remove_users') ) {
+			if ( ! ( $this->current_user_can_bulk_edit() && in_array( $blogid, Bulk_User_Table::get_blog_ids( 'remove_users' ) ) ) && ! current_user_can_for_blog( $blogid, 'remove_users' ) ) {
 				$error = new WP_Error( 'no-remove-user-cap', sprintf( __( 'You can&#8217;t remove users on that site.', 'bulk-user-management' ) ) );
 				// Just throw an error because that shouldn't have been possible
 				wp_die( $error->get_error_message() );

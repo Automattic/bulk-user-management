@@ -95,25 +95,6 @@ class Bulk_User_Table extends WP_List_Table {
 		return $actions;
 	}
 
-	function get_blog_ids( $cap ) {
-
-		$limit = array_map( 'intval', apply_filters( 'bulk_user_management_blogs', array() ) );
-
-		if ( count( $limit ) > 0 )
-			return $limit;
-
-		$user_id = get_current_user_id();
-		$blogs = get_blogs_of_user( $user_id );
-		$blog_ids = array();
-		foreach ( $blogs as $blog ) {
-			$user = new WP_User( $user_id, null, $blog->userblog_id );
-			if ( user_can( $user, $cap ) )
-				$blog_ids[] = $blog->userblog_id;
-		}
-
-		return $blog_ids;
-	}
-
 	function prepare_items( $queryitems = true ) {
 		global $wpdb;
 
@@ -300,5 +281,24 @@ class Bulk_User_Table extends WP_List_Table {
 
 		</tbody></table>
 <?php
+	}
+
+	static function get_blog_ids( $cap ) {
+
+		$limit = array_map( 'intval', apply_filters( 'bulk_user_management_blogs', array() ) );
+
+		if ( count( $limit ) > 0 )
+			return $limit;
+
+		$user_id = get_current_user_id();
+		$blogs = get_blogs_of_user( $user_id );
+		$blog_ids = array();
+		foreach ( $blogs as $blog ) {
+			$user = new WP_User( $user_id, null, $blog->userblog_id );
+			if ( user_can( $user, $cap ) )
+				$blog_ids[] = $blog->userblog_id;
+		}
+
+		return $blog_ids;
 	}
 }
