@@ -221,7 +221,7 @@ class Bulk_User_Management {
 		check_admin_referer( 'bulk-user-management-bulk-users', 'bulk-user-management-bulk-users' );
 
 		// Set up the base redirect
-		$redirect = add_query_arg( 'page', self::PAGE_SLUG, $_SERVER['REQUEST_URI'] );
+		$redirect = esc_url_raw( add_query_arg( 'page', self::PAGE_SLUG, $_SERVER['REQUEST_URI'] ) );
 
 		// List of users to edit can't be empty
 		if ( empty($_REQUEST['users']) ) {
@@ -295,7 +295,7 @@ class Bulk_User_Management {
 		check_admin_referer( 'bulk-user-management-bulk-remove-users', 'bulk-user-management-bulk-remove-users' );
 
 		// Set up the base redirect
-		$redirect = add_query_arg( 'page', self::PAGE_SLUG, $_SERVER['REQUEST_URI'] );
+		$redirect = esc_url_raw( add_query_arg( 'page', self::PAGE_SLUG, $_SERVER['REQUEST_URI'] ) );
 
 		// List of users can't be empty
 		if ( empty($_REQUEST['users']) ) {
