@@ -3,14 +3,14 @@
 **************************************************************************
 
 Plugin Name:  Multisite Bulk User Management
-Plugin URI:   
-Description:  
+Plugin URI:   http://wordpress.org/extend/plugins/bulk-user-management/
+Description:  A plugin that lets you manage users across all your sites from one place on a multisite install
 Version:      1.0.0
 Author:       Automattic
-Author URI:   
+Author URI:   http://automattic.com/wordpress-plugins/
 License:      GPLv2 or later
 
-Network: true
+Network:      true
 Text Domain:  bulk-user-management
 Domain Path:  /languages/
 
