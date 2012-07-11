@@ -1,0 +1,10 @@
+#wpbody-content .inline-edit-row fieldset.inline-edit-col-right-wide { width: 70%; }
+#wpbody-content .inline-edit-row fieldset.inline-edit-col-middle { width: 50%; }
+#wpbody-content .inline-edit-row fieldset.inline-edit-col-right { width: 20%; }
+#new-user-and-email input { width: 47%; }
+h3 a.button { float: right; margin-right: 6%; }
+input[type=checkbox] { width: auto; }
+.site-checklist li {
+	display: inline-block;
+	min-width: 49%;
+}
