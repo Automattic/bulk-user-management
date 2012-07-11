@@ -1,6 +1,6 @@
 === Bulk User Management ===
 Contributors: automattic, betzster, danielbachhuber
-Tags: 
+Tags: admin, users, bulk
 Requires at least: 3.4
 Tested up to: 3.4.1
 Stable tag: 1.0

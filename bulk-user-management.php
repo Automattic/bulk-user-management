@@ -3,14 +3,14 @@
 **************************************************************************
 
 Plugin Name:  Multisite Bulk User Management
-Plugin URI:   
-Description:  
+Plugin URI:   http://wordpress.org/extend/plugins/bulk-user-management/
+Description:  A plugin that lets you manage users across all your sites from one place on a multisite install
 Version:      1.0.0
 Author:       Automattic
-Author URI:   
+Author URI:   http://automattic.com/wordpress-plugins/
 License:      GPLv2 or later
 
-Network: true
+Network:      true
 Text Domain:  bulk-user-management
 Domain Path:  /languages/
 
@@ -29,7 +29,7 @@ class Bulk_User_Management {
 
 	function __construct() {
 		add_action( 'init',                                array( $this, 'init' ) );
-		add_action( 'admin_init',                          array( $this, 'admin_init' ) );
+		add_action( 'admin_print_scripts',                 array( $this, 'admin_print_scripts' ) );
 		add_action( 'admin_enqueue_scripts',               array( $this, 'enqueue_scripts' ) );
 
 		add_action( 'admin_menu',                          array( $this, 'register_menus' ) );
@@ -55,7 +55,7 @@ class Bulk_User_Management {
 		$this->invite_page = apply_filters('bulk_user_management_invite_page', $this->invite_page);
 	}
 
-	public function admin_init() { ?>
+	public function admin_print_scripts() { ?>
 		<script>
 			var bulk_user_management_images = "<?php echo plugins_url( 'images', __FILE__ ); ?>";
 		</script>
