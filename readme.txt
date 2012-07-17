@@ -3,7 +3,7 @@ Contributors: automattic, betzster, danielbachhuber
 Tags: admin, users, bulk
 Requires at least: 3.4
 Tested up to: 3.4.1
-Stable tag: 1.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,3 +36,6 @@ Because you haven't asked one yet.
 
 = 1.0 =
 * Initial Release
+
+= 1.0.1 =
+* Fix fatal error in PHP 5.2
