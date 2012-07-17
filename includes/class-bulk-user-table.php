@@ -131,29 +131,8 @@ class Bulk_User_Table extends WP_List_Table {
 			}
 
 			// orderby and order
-			usort( $query, function( $a, $b ){
-				
-				// Set $order to 1 or -1
-				$order = isset( $_REQUEST['order'] ) && 'desc' == $_REQUEST['order'] ? -1 : 1;
 
-				// Only accept 3 options for $orderby
-				$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( $_REQUEST['orderby'] ) : 'user_login';
-				switch ( $orderby ) {
-					case 'display_name':
-						$cmp = strnatcmp( strtolower( $a->display_name ), strtolower( $b->display_name ) );
-						break;
-					case 'user_email':
-						$cmp = strnatcmp( strtolower( $a->user_email ), strtolower( $b->user_email ) );
-						break;
-					case 'user_login':
-					default:
-						$cmp = strnatcmp( strtolower( $a->user_login ), strtolower( $b->user_login ) );
-						break;
-				}
-
-				// Multiply the comparison by -1 if we want to sort DESC
-				return $cmp * $order;
-			});
+			usort( $query, array( $this, 'compare_users' ) );
 
 			// search
 			$users = array();
@@ -176,6 +155,34 @@ class Bulk_User_Table extends WP_List_Table {
 
 		}
 
+	}
+
+	/**
+	 * Compare users by login, email, or name depending on the
+	 * orderby and order request variables
+	 */
+	private function compare_users( $a, $b ){
+				
+		// Set $order to 1 or -1
+		$order = isset( $_REQUEST['order'] ) && 'desc' == $_REQUEST['order'] ? -1 : 1;
+
+		// Only accept 3 options for $orderby
+		$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( $_REQUEST['orderby'] ) : 'user_login';
+		switch ( $orderby ) {
+			case 'display_name':
+				$cmp = strnatcmp( strtolower( $a->display_name ), strtolower( $b->display_name ) );
+				break;
+			case 'user_email':
+				$cmp = strnatcmp( strtolower( $a->user_email ), strtolower( $b->user_email ) );
+				break;
+			case 'user_login':
+			default:
+				$cmp = strnatcmp( strtolower( $a->user_login ), strtolower( $b->user_login ) );
+				break;
+		}
+
+		// Multiply the comparison by -1 if we want to sort DESC
+		return $cmp * $order;
 	}
 
 	function has_items() {
