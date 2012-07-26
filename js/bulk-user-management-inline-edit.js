@@ -96,8 +96,9 @@ inlineEditUser = {
 			order: getParameterByName('order')
 		};
 
+		$("#wpbody-content").prepend("<div id='loading'><span>Loading...</span></div>");
 		$(".actions").prepend("<img class='ajax-spinner' src='" + bulk_user_management_images + "/wpspin_light.gif'>");
-		$(".wp-list-table").animate({"opacity":".4"});
+		$(".wp-list-table").animate({"opacity":".3"});
 
 		$.post(ajaxurl, data, function(response) {
 			$('.widefat tbody').html( $(response).find('#the-list').html() );
@@ -138,7 +139,7 @@ inlineEditUser = {
 				return false;
 			});
 		}).success(function(){
-			$(".ajax-spinner").hide();
+			$(".ajax-spinner, #loading").hide();
 			$(".wp-list-table").animate({"opacity":"1"});
 			$('.widefat tbody tr').each(function(){
 				var id = $(this).find('th.check-column input[type="checkbox"]').val();
