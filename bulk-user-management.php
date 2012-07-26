@@ -142,6 +142,9 @@ class Bulk_User_Management {
 				case 'user_email_pair':
 					$messages[] = __( 'Each new user must have an email address specified.', 'bulk-user-management' );
 					break;
+				case 'cant-remove-current':
+					$messages[] = __( "Can't remove the current user", 'bulk-user-management' );
+					break;
 				case 'add_user_errors':
 					foreach ( $_POST['errors'] as $email => $error ) {
 						$email = sanitize_email( $email );
@@ -308,6 +311,10 @@ class Bulk_User_Management {
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
 
+		// Don't let a user remove themself
+		if ( in_array( get_current_user_id(), $userids ) )
+			$update = 'cant-remove-current';
+
 		// Check that the current user can remove users on all target blogs
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
@@ -317,8 +324,6 @@ class Bulk_User_Management {
 				wp_die( $error->get_error_message() );
 			}
 		}
-
-		//TODO: handle case where user removes themself?
 
 		if ( 'remove' == $update )
 			$this->remove_users($blogids, $userids);
