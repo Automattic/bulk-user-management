@@ -35,9 +35,12 @@ Because you haven't asked one yet.
 == Changelog ==
 
 = 1.1 =
-
-= 1.0 =
-* Initial Release
+* Adds a screen option for number of users per page
+* Makes it more obvious when an ajax action is loading
+* Doesn't allow current user to remove themself
 
 = 1.0.1 =
 * Fix fatal error in PHP 5.2
+
+= 1.0 =
+* Initial Release
