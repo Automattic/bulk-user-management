@@ -3,7 +3,7 @@ Contributors: automattic, betzster, danielbachhuber
 Tags: admin, users, bulk
 Requires at least: 3.4
 Tested up to: 3.4.1
-Stable tag: 1.0.1
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,6 +33,8 @@ The following filters will let you customize the plugin:
 Because you haven't asked one yet.
 
 == Changelog ==
+
+= 1.1 =
 
 = 1.0 =
 * Initial Release

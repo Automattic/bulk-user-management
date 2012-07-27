@@ -5,7 +5,7 @@
 Plugin Name:  Multisite Bulk User Management
 Plugin URI:   http://wordpress.org/extend/plugins/bulk-user-management/
 Description:  A plugin that lets you manage users across all your sites from one place on a multisite install
-Version:      1.0.1
+Version:      1.1
 Author:       Automattic
 Author URI:   http://automattic.com/wordpress-plugins/
 License:      GPLv2 or later
@@ -20,7 +20,7 @@ include('includes/class-bulk-user-table.php');
 
 class Bulk_User_Management {
 
-	const VERSION        = '1.0.0';
+	const VERSION        = '1.1';
 	const PAGE_SLUG      = 'bulk_user_management';
 	const PER_PAGE       = 20;
 
