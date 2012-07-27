@@ -98,7 +98,7 @@ class Bulk_User_Table extends WP_List_Table {
 	function prepare_items( $queryitems = true ) {
 		global $wpdb;
 
-		$per_page = 20;
+		$per_page = isset( $_REQUEST['per_page'] ) ? intval( $_REQUEST['per_page'] ) : 20;
 
 		$paged = $this->get_pagenum();
 

@@ -93,7 +93,8 @@ inlineEditUser = {
 			paged: getParameterByName('paged'),
 			s: getParameterByName('s'),
 			orderby: getParameterByName('orderby'),
-			order: getParameterByName('order')
+			order: getParameterByName('order'),
+			per_page: $("#bulk_user_management_per_page").val()
 		};
 
 		$("#wpbody-content").prepend("<div id='loading'><span>Loading...</span></div>");
