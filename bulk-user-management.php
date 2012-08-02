@@ -367,8 +367,8 @@ class Bulk_User_Management {
 		if ( is_super_admin() )
 			return true;
 
-		$admins = array_map( 'intval', apply_filters( 'bulk_user_management_admin_users', array() ) );
-		if ( in_array( get_current_user_id(), $admins ) )
+		$admins = array_map( 'sanitize_user', apply_filters( 'bulk_user_management_admin_users', array() ) ); 
+		if ( in_array( wp_get_current_user()->user_login, $admins ) ) 
 			return true;
 
 		return false;
