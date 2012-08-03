@@ -5,7 +5,7 @@
 Plugin Name:  Multisite Bulk User Management
 Plugin URI:   http://wordpress.org/extend/plugins/bulk-user-management/
 Description:  A plugin that lets you manage users across all your sites from one place on a multisite install
-Version:      1.0.1
+Version:      1.1
 Author:       Automattic
 Author URI:   http://automattic.com/wordpress-plugins/
 License:      GPLv2 or later
@@ -20,7 +20,7 @@ include('includes/class-bulk-user-table.php');
 
 class Bulk_User_Management {
 
-	const VERSION        = '1.0.0';
+	const VERSION        = '1.1';
 	const PAGE_SLUG      = 'bulk_user_management';
 	const PER_PAGE       = 20;
 
@@ -47,6 +47,8 @@ class Bulk_User_Management {
 		add_action( 'admin_init', array( $this, 'handle_remove_users_form' ) );
 
 		add_action( 'wp_ajax_bulk_user_management_show_form', array( $this, 'show_users' ) );
+
+		add_filter( 'set-screen-option', array( $this, 'bulk_user_management_set_option' ), 10, 3 );
 	}
 
 	public function init() {
@@ -72,8 +74,26 @@ class Bulk_User_Management {
 	}
 
 	public function register_menus() {
-		if ( $this->current_user_can_bulk_edit() )
-			add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
+		if ( $this->current_user_can_bulk_edit() ) {
+			$hook = add_submenu_page( $this->parent_page, esc_html__( 'Bulk User Management', 'bulk-user-management' ), esc_html__( 'User Management', 'bulk-user-management' ), 'manage_options', self::PAGE_SLUG, array( $this, 'users_page' ) );
+			add_action( "load-$hook", array( $this, 'per_page' ) );
+		}
+	}
+
+	public function per_page() {
+		$option = 'per_page';
+
+		$args = array(
+			'label' => __( 'Users', 'bulk-user-management' ),
+			'default' => self::PER_PAGE,
+			'option' => 'bulk_user_management_per_page'
+		);
+
+		add_screen_option( $option, $args );
+	}
+
+	public function bulk_user_management_set_option( $status, $option, $value ) {
+		if ( 'bulk_user_management_per_page' == $option ) return $value;
 	}
 
 	/**
@@ -141,6 +161,9 @@ class Bulk_User_Management {
 					break;
 				case 'user_email_pair':
 					$messages[] = __( 'Each new user must have an email address specified.', 'bulk-user-management' );
+					break;
+				case 'cant-remove-current':
+					$messages[] = __( "Can't remove the current user", 'bulk-user-management' );
 					break;
 				case 'add_user_errors':
 					foreach ( $_POST['errors'] as $email => $error ) {
@@ -308,6 +331,10 @@ class Bulk_User_Management {
 		$blogids = array_map('intval', $_REQUEST['blogs']);
 		$userids = array_map('intval', $_REQUEST['users']);
 
+		// Don't let a user remove themself
+		if ( in_array( get_current_user_id(), $userids ) )
+			$update = 'cant-remove-current';
+
 		// Check that the current user can remove users on all target blogs
 		$errors = array();
 		foreach ( $blogids as $blogid ) {
@@ -317,8 +344,6 @@ class Bulk_User_Management {
 				wp_die( $error->get_error_message() );
 			}
 		}
-
-		//TODO: handle case where user removes themself?
 
 		if ( 'remove' == $update )
 			$this->remove_users($blogids, $userids);
@@ -342,8 +367,14 @@ class Bulk_User_Management {
 		if ( is_super_admin() )
 			return true;
 
-		$admins = array_map( 'sanitize_user', apply_filters( 'bulk_user_management_admin_users', array() ) ); 
+		// Add users by username
+		$admins = array_map( 'sanitize_user', apply_filters( 'bulk_user_management_admins_by_username', array() ) ); 
 		if ( in_array( wp_get_current_user()->user_login, $admins ) ) 
+			return true;
+
+		// Add users by id
+		$admins = array_map( 'intval', apply_filters( 'bulk_user_management_admin_users', array() ) );
+		if( in_array( get_current_user_id(), $admins ) )
 			return true;
 
 		return false;

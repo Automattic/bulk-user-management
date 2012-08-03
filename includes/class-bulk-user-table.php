@@ -98,7 +98,20 @@ class Bulk_User_Table extends WP_List_Table {
 	function prepare_items( $queryitems = true ) {
 		global $wpdb;
 
-		$per_page = 20;
+		$screen = get_current_screen();
+		
+		if ( isset( $screen ) ) {
+			// First check for a screen option the right way.
+			// If we're loaded with ajax, this won't work
+			$option = $screen->get_option( 'per_page', 'option' );
+			$per_page = get_user_meta( get_current_user_id(), $option, true );
+		} elseif ( isset( $_REQUEST['per_page'] ) ) {
+			// Check for per_page request variable
+			$per_page = intval( $_REQUEST['per_page' ] );
+		} else {
+			// Fall back to a reasonable default
+			$per_page = 20;
+		}
 
 		$paged = $this->get_pagenum();
 
@@ -131,7 +144,6 @@ class Bulk_User_Table extends WP_List_Table {
 			}
 
 			// orderby and order
-
 			usort( $query, array( $this, 'compare_users' ) );
 
 			// search

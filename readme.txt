@@ -3,7 +3,7 @@ Contributors: automattic, betzster, danielbachhuber
 Tags: admin, users, bulk
 Requires at least: 3.4
 Tested up to: 3.4.1
-Stable tag: 1.0.1
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,7 +24,8 @@ The following filters will let you customize the plugin:
 
 * `bulk_user_management_blogs` - array of sites that can be managed
 * `bulk_user_management_parent_page` - sets parent page
-* `bulk_user_management_admin_users` - array of users that the plugin is active for
+* `bulk_user_management_admin_users` - array of users by id that the plugin is active for
+* `bulk_user_management_admins_by_username` - array of users by username that the plugin is active for
 
 == Frequently Asked Questions ==
 
@@ -34,8 +35,13 @@ Because you haven't asked one yet.
 
 == Changelog ==
 
-= 1.0 =
-* Initial Release
+= 1.1 =
+* Adds a screen option for number of users per page
+* Makes it more obvious when an ajax action is loading
+* Doesn't allow current user to remove themself
 
 = 1.0.1 =
 * Fix fatal error in PHP 5.2
+
+= 1.0 =
+* Initial Release
