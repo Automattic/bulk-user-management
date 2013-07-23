@@ -33,6 +33,14 @@ The following filters will let you customize the plugin:
 
 Because you haven't asked one yet.
 
+== Screenshots ==
+
+1. All the users on all your sites
+2. Pick which users need to be moved
+3. Select the bulk action that you want to perform
+4. Choose the blogs and a new role if necessary
+5. Success!
+
 == Changelog ==
 
 = 1.1 =
