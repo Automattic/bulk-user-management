@@ -150,7 +150,17 @@ inlineEditUser = {
 	}
 };
 
-$(document).ready(function(){inlineEditUser.init();});
+$(document).ready(function(){
+	inlineEditUser.init();
+	$('.select-all-sites').on('click', function() {
+		if($(this).prop('checked')) {
+			$('.site-checklist input').prop('checked', true);
+		}
+		else {
+			$('.site-checklist input').prop('checked', false);
+		}
+	});
+});
 })(jQuery);
 
 function getParameterByName(name, url) {

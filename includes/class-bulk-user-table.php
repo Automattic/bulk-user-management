@@ -223,7 +223,10 @@ class Bulk_User_Table extends WP_List_Table {
 		</div></fieldset>
 
 		<fieldset class="inline-edit-col-middle"><div class="inline-edit-col">
-			<span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
+			<span class="title inline-edit-categories-label">
+				<?php _e( 'Sites', 'bulk-user-management' ) ?>
+				&nbsp;&nbsp;<input class="select-all-sites" type="checkbox" name="select-all-sites" value="1" /><?php _e( 'Select All', 'bulk-user-management' ) ?>
+			</span>
 
 			<ul class="cat-checklist site-checklist">
 				<?php foreach ( $this->get_blog_ids( 'promote_users' ) as $id ): ?>
@@ -278,7 +281,10 @@ class Bulk_User_Table extends WP_List_Table {
 		</div></fieldset>
 
 		<fieldset class="inline-edit-col-right-wide"><div class="inline-edit-col">
-			<span class="title inline-edit-categories-label"><?php _e( 'Sites', 'bulk-user-management' ) ?></span>
+			<span class="title inline-edit-categories-label">
+				<?php _e( 'Sites', 'bulk-user-management' ) ?>
+				&nbsp;&nbsp;<input class="select-all-sites" type="checkbox" name="select-all-sites" value="1" /><?php _e( 'Select All', 'bulk-user-management' ) ?>
+			</span>
 
 			<ul class="cat-checklist site-checklist">
 				<?php foreach ( $this->get_blog_ids( 'remove_users' ) as $id ): ?>
