@@ -297,6 +297,10 @@ class Bulk_User_Management {
 	public function promote_users($blogids = array(), $userids = array(), $role) {
 		foreach ( $userids as $id ) {
 			foreach ( $blogids as $blogid ) {
+				// Is the current user already a member of the blog with the given `$role`? If so, continue.
+				if ( count ( get_users( array( 'blog_id' => $blogid, 'role' => $role, 'include' => array ( $id ) ) ) ) > 0 ) {
+					continue;
+				}
 				add_user_to_blog( $blogid, $id, $role );
 			}
 		}
@@ -358,6 +362,10 @@ class Bulk_User_Management {
 	public function remove_users($blogids = array(), $userids = array()) {
 		foreach ( $userids as $userid ) {
 			foreach ( $blogids as $blogid ) {
+				// Is the current user already not a member of the blog? If so, continue.
+				if ( count ( get_users( array( 'blog_id' => $blogid, 'include' => array ( $userid ) ) ) ) == 0 ) {
+					continue;
+				}
 				remove_user_from_blog( $userid, $blogid );
 			}
 		}
