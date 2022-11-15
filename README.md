@@ -1,7 +1,15 @@
 Bulk User Management
 ====================
 
-A WordPress plugin that lets you manage users across all your sites from one place on a multisite install.
+Bulk User Management allows a set of specified users to manage permissions across all your sites. Users from every site in your network are displayed in a list and can be added to or removed from any of your sites. Any users that aren’t currently in your network can still be invited to any of your blogs through the normal invite process. After they accept, they can be managed in bulk across the network.
+
+To enable the plugin, you will need to pass an array of user logins to `wpcom_vip_bulk_user_management_whitelist()`. Bulk User Management will only be available for these users and they will be able to manage all the users in your network regardless of their specified capability on those sites.
+
+```
+wpcom_vip_bulk_user_management_whitelist( array( 'user1', 'user2', 'user3' ) );
+```
+
+To manage users, use the checkboxes to select which users to manage and pick an action from the “Bulk Actions” dropdown. This will reveal a bulk edit section in the table. Select the sites that the changes should apply to and pick a role if necessary. Clicking update will apply the changes and refresh the page.
 
 Filters
 -----
